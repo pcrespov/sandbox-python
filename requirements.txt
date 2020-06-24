@@ -1,6 +1,6 @@
+# tools
 pylint
-autopep8
+black
 pip-tools
-
 
 pytest
