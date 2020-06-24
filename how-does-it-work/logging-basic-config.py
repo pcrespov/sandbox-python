@@ -16,7 +16,7 @@ assert not logging.root.handlers
 
 
 def logit(log):
-    print('{:*^100}'.format(str(log)))
+    print("{:*^100}".format(str(log)))
 
     if log is not logging:
         print(log.handlers)
@@ -27,18 +27,19 @@ def logit(log):
     log.info("FYI")
     log.debug("BTW")
 
+
 def main():
 
     # logging.basicConfig(level=logging.DEBUG)
 
     # setting level DOES NOT creates handler
     assert not logging.root.handlers
-    logging.root.setLevel(logging.DEBUG) # ensures root level
+    logging.root.setLevel(logging.DEBUG)  # ensures root level
     assert not logging.root.handlers
 
-    logit(logging) # lazy generation of handlers as soon as a log is written
+    logit(logging)  # lazy generation of handlers as soon as a log is written
     assert len(logging.root.handlers) == 1
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     assert logging.root.level == logging.DEBUG
 
     # therefore thisone DOES NOTHING
@@ -49,5 +50,6 @@ def main():
     logit(logging.getLogger("A"))
     logit(logging.getLogger("A.B"))
     logit(logging.getLogger("A.C"))
+
 
 main()
