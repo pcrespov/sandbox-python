@@ -52,4 +52,6 @@ def main():
     print("slept", res)
 
 
-main()
+
+if __name__ == "__main__":
+    main()
