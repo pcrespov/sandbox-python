@@ -1,5 +1,17 @@
+"""
+This example abuses pytest to build a workflow based on dependency injection
+
+fixture functions take the role of the injector and test functions are the 
+consumers of fixture objects.
+
+SEE https://en.wikipedia.org/wiki/Dependency_injection
+"""
+
+
 import pytest
 import sys
+
+
 
 
 @pytest.fixture(scope="session")
