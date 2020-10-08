@@ -23,4 +23,4 @@ run5:
 
 run6:
 	cd 6; \
-	cwl-runner --debug docker.cwl job.yml
+	cwl-runner docker.cwl job.yml
