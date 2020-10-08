@@ -6,3 +6,8 @@ run1:
 run2:
 	cd 2; touch whale.txt; \
 	cwl-runner --debug input.cwl input-job.yml
+
+run3:
+	cd 3; \
+	touch hello.txt && tar -cvf hello.tar hello.txt; \
+	cwl-runner --debug tar.cwl tar-job.yml
