@@ -1,4 +1,5 @@
 {
     "python.pythonPath": ".venv/bin/python3",
-    "python.formatting.provider": "black"
+    "python.formatting.provider": "black",
+    "files.associations": {"*.cwl": "yaml"}
 }
