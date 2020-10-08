@@ -20,3 +20,7 @@ run5:
 	cd 5; \
 	rm -f hello.tar; touch goodbye.txt; touch hello.txt; tar -cvf hello.tar goodbye.txt hello.txt && \
 	cwl-runner --debug tar-param.cwl job.yml
+
+run6:
+	cd 6; \
+	cwl-runner --debug docker.cwl job.yml
