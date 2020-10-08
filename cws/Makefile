@@ -11,3 +11,7 @@ run3:
 	cd 3; \
 	touch hello.txt && tar -cvf hello.tar hello.txt; \
 	cwl-runner --debug tar.cwl tar-job.yml
+
+run4:
+	cd 4; \
+	cwl-runner --debug stdout.cwl echo-job.yml
