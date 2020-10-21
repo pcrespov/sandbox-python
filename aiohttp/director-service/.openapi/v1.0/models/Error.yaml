@@ -1,0 +1,20 @@
+required:
+  - code
+  - message
+properties:
+  code:
+    type: integer
+    format: int32
+    example: 422
+  error:
+    type: string
+    example: "FIELDS_VALIDATION_ERROR"
+    # TODO: format: upper snake in enum?
+  message:
+    type: string
+    example: "One or more request's fields raised validation errors"
+  fields:
+    type: object
+    description: a dict with error messages specific fot request's fields
+    additionalProperties:
+      type: string

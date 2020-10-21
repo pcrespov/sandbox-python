@@ -1,0 +1,10 @@
+postgres:
+  database: aiohttpdemo
+  user: aiohttpdemo_user
+  password: ${PASSWORD}
+  host: db
+  port: 5432
+  minsize: 1
+  maxsize: 100
+host: 0.0.0.0
+port: 8080
