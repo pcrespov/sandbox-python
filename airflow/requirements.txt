@@ -1,0 +1,6 @@
+# https://airflow.apache.org/docs/stable/installation.html
+apache-airflow
+
+
+# fancy-pancy tooling
+black
