@@ -1,12 +1,14 @@
 version: "3.7"
 services:
   rabbit:
-    image: itisfoundation/rabbitmq:3.8.0-management
+    image: rabbitmq
     init: true
+    ports:
+        - ${RABBIT_PORT}:5672
     environment:
       - RABBITMQ_DEFAULT_USER=${RABBIT_USER}
-      - RABBITMQ_DEFAULT_PASS=${RABBIT_PASSWORD}    
-  
+      - RABBITMQ_DEFAULT_PASS=${RABBIT_PASSWORD}
+
   rabbit-flower:
     # NOTE: latest with DIGEST 9bcc31818a1c7 is broken!
     # SEE https://github.com/mher/flower/issues/1029
@@ -17,19 +19,19 @@ services:
       - CELERY_BROKER_URL=amqp://${RABBIT_USER}:${RABBIT_PASSWORD}@${RABBIT_HOST}:${RABBIT_PORT}
       - FLOWER_PORT=5555
     ports:
-      - "49555:5555"
+      - "5555:5555"
 
-  redis:
-    image: redis:5.0-alpine
-    init: true
+  # redis:
+  #   image: redis:5.0-alpine
+  #   init: true
 
-  redis-commander:
-    image: rediscommander/redis-commander:latest
-    init: true
-    restart: always
-    environment:
-      - REDIS_HOSTS=${REDIS_HOST}
-    ports:
-      - "18081:8081"
+  # redis-commander:
+  #   image: rediscommander/redis-commander:latest
+  #   init: true
+  #   restart: always
+  #   environment:
+  #     - REDIS_HOSTS=${REDIS_HOST}
+  #   ports:
+  #     - "18081:8081"
 
 
