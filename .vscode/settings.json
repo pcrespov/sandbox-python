@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "/Users/pcrespo/devp/sandbox-python/.venv/bin/python3",
+    "python.pythonPath": ".venv",
     "python.formatting.provider": "black",
     "files.associations": {"*.cwl": "yaml"}
 }
