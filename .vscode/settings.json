@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": ".venv",
+    "python.pythonPath": ".venv/bin/python",
     "python.formatting.provider": "black",
     "files.associations": {"*.cwl": "yaml"}
 }
