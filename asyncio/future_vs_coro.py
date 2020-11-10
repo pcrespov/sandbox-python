@@ -12,12 +12,13 @@ async def async_foo():
     await asyncio.sleep(1)
     print("async_foo done")
 
+
 async def go_forever():
     n = 0
     while True:
         print(f"t={n}")
-        await asyncio.sleep(1) # this is stopped here after the loop is done!
-        n+=1
+        await asyncio.sleep(1)  # this is stopped here after the loop is done!
+        n += 1
 
 
 async def main():
@@ -26,8 +27,6 @@ async def main():
     await asyncio.sleep(10)
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main())
-
