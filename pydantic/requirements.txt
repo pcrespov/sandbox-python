@@ -1,2 +1,2 @@
-pydantic #[email,typing_extension,dotenv]
+pydantic[email,typing_extension,dotenv]
 sqlalchemy
