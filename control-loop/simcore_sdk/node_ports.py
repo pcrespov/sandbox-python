@@ -1,4 +1,10 @@
 
+class Ports:
+    async def inputs(self):
+        pass
 
-async def ports(cls):
+    async def outputs(self):
+        pass
+
+async def ports():
     pass
