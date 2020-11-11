@@ -1,14 +1,14 @@
  ### Control Core
 
 
- ![](img/overview.png)
+ ![](img/overview.min.png)
  
  
  ### Example: *control* loop with two nodes
  
  created two interacting nodes (I renamed them "*control*" and "*PM*")
 
-![](img/schematic.png)
+![](img/schematic.min.png)
 
  They each do a silly computation:
 
