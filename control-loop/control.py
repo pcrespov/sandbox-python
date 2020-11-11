@@ -1,11 +1,12 @@
 # this code is in the control node
-import asyncio
-from simcore_sdk import node_ports
 
+import asyncio
 from pathlib import Path
 
+from simcore_sdk import node_ports
 
 async def main():
+    p = Path("x.dat")
     PORTS = await node_ports.ports()
 
     x = 0
@@ -15,14 +16,13 @@ async def main():
             y = float(input_1.read_text())
         except:
             y = 0
-            x = y + 1
-            print("x=" + str(x) + "y=" + str(y))
+        
+        x = y + 1
+        print("x=" + str(x) + "y=" + str(y))
 
-        p = Path("x.dat")
         p.write_text(str(x))
         await (await PORTS.outputs)[0].set(p)
 
-    p = Path("x.dat")
     p.write_text("0")
     await (await PORTS.outputs)[0].set(p)
 
