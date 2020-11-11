@@ -9,7 +9,7 @@
  created two interacting nodes (I renamed them "*control*" and "*PM*")
 
 ![](img/schematic.min.png)
-![](img/osparc.png)
+
 
  They each do a silly computation:
 
@@ -18,6 +18,14 @@
  3. To keep it from being an infinite loop, they both terminate when ``x>10``, and reset their values back to ``0`` (so I can rerun the notebook easily).
 
 When I first start one node, it is just stuck at ``0``, but when I start the other node, they progress such that ``x`` is always one larger than ``y``
+
+
+
+### in osparc
+
+Currently this is how it looks and works
+
+![](img/osparc.png)
 
 
 ### Interfaces to container
