@@ -2,6 +2,8 @@
  
  created two interacting nodes (I renamed them "*control*" and "*PM*")
 
+![](schematic.png)
+
  They each do a silly computation:
 
  1. *control* increments the output of *PM* (``y``) by one and this result (``x``) is the input to *PM* 
