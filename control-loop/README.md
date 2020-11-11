@@ -9,6 +9,7 @@
  created two interacting nodes (I renamed them "*control*" and "*PM*")
 
 ![](img/schematic.min.png)
+![](img/osparc.png)
 
  They each do a silly computation:
 
