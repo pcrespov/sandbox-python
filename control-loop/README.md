@@ -30,5 +30,6 @@ Currently this is how it looks and works
 
 ### Interfaces to container
 
-![](img/container-interface.min.png)
-
+<p align="center">
+<img src="img/container-interface.min.png" width=400>
+</p>
