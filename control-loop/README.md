@@ -1,15 +1,16 @@
  ### Control Core
 
-
- ![](img/overview.min.png)
- 
+<p align="center">
+ <img src="img/overview.min.png" width=300 />
+</p>
  
  ### Example: *control* loop with two nodes
  
  created two interacting nodes (I renamed them "*control*" and "*PM*")
 
-![](img/schematic.min.png)
-
+<p align="center">
+<img src="img/schematic.min.png" width=100 />
+</p>
 
  They each do a silly computation:
 
@@ -19,14 +20,13 @@
 
 When I first start one node, it is just stuck at ``0``, but when I start the other node, they progress such that ``x`` is always one larger than ``y``
 
-
-
 ### in osparc
 
 Currently this is how it looks and works
 
-![](img/osparc.png)
-
+<p align="center">
+<img src="img/osparc.min.png" width=300 />
+</p>
 
 ### Interfaces to container
 
