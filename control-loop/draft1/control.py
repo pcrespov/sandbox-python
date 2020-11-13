@@ -1,9 +1,11 @@
-# this code is in the control node
+# Sample provided by Mark Arnold with small changes to adapt it
 
+# this code is in the control node
 import asyncio
 from pathlib import Path
 
 from simcore_sdk import node_ports
+
 
 async def main():
     p = Path("x.dat")
@@ -16,7 +18,7 @@ async def main():
             y = float(input_1.read_text())
         except:
             y = 0
-        
+
         x = y + 1
         print("x=" + str(x) + "y=" + str(y))
 
