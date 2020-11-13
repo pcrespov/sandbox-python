@@ -24,25 +24,29 @@
 
 When I first start one node, it is just stuck at ``0``, but when I start the other node, they progress such that ``x`` is always one larger than ``y``
 
+<p align="center">
+<img src="img/osparc.min.png" width=300 />
+</p>
+
 ### draft 2
 
 - As draft 1 but one dedicated time heartbeat + array of weights for optimization for inputs/outputs
-
+  - controller: (MPC algorithm using cvxopt) 
+    - input #1: simtime, ym (heart rate, pressure)
+    - input #2 configuration matrices
+    - output #1: simtime, u (stimulations to heart) 
+  - PM (simplified cardiac model) 
+    - input #1: simtime, u 
+    - input #2: configuration matrices
+    - output #1: simtime, ym (for next heartbeat, ie time advances)
+    <p align="center">
+    <img src="img/osparc-cl.min.png" width=400 />
+    </p>
 ### draft 3
 
 - Untested idea:  Sleeping with standard I/O in Jupyter Lab?
 
-----
 
-## Integration in osparc
-
-Currently this is how it looks and works using notebooks
-
-<p align="center">
-<img src="img/osparc.min.png" width=300 />
- <img src="img/osparc-cl.min.png" width=500 />
-</p>
- 
 ### Interfaces to container
 
 <p align="center">

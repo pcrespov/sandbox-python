@@ -3,6 +3,7 @@ import asyncio
 import time
 from pathlib import Path
 
+import numpy as np
 from simcore_sdk import node_ports
 
 
