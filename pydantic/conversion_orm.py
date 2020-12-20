@@ -1,14 +1,16 @@
 from typing import List
+
 from sqlalchemy import Column, Integer, String
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.declarative import declarative_base
+
 from pydantic import BaseModel, constr
 
 Base = declarative_base()
 
 
 class CompanyOrm(Base):
-    __tablename__ = 'companies'
+    __tablename__ = "companies"
     id = Column(Integer, primary_key=True, nullable=False)
     public_key = Column(String(20), index=True, nullable=False, unique=True)
     name = Column(String(63), unique=True)
@@ -18,7 +20,7 @@ class CompanyOrm(Base):
 class CompanyModel(BaseModel):
     id: int
     not_in_orm_but_with_default = 32
-    #public_key: constr(max_length=20)
+    # public_key: constr(max_length=20)
     name: constr(max_length=63)
     domains: List[constr(max_length=255)]
 
@@ -27,14 +29,11 @@ class CompanyModel(BaseModel):
 
 
 co_orm = CompanyOrm(
-    id=123,
-    public_key='foobar',
-    name='Testing',
-    domains=['example.com', 'foobar.com']
+    id=123, public_key="foobar", name="Testing", domains=["example.com", "foobar.com"]
 )
 print(co_orm)
-#> <models_orm_mode.CompanyOrm object at 0x7f508ce58128>
+# > <models_orm_mode.CompanyOrm object at 0x7f508ce58128>
 co_model = CompanyModel.from_orm(co_orm)
 print(co_model)
-#> id=123 public_key='foobar' name='Testing' domains=['example.com',
-#> 'foobar.com']
+# > id=123 public_key='foobar' name='Testing' domains=['example.com',
+# > 'foobar.com']

@@ -1,4 +1,5 @@
 from typing import List
+
 from pydantic import BaseModel, ValidationError, conint
 
 
@@ -16,9 +17,9 @@ class Model(BaseModel):
 
 
 data = dict(
-    list_of_ints=['1', 2, 'bad'],
-    a_float='not a float',
-    recursive_model={'lat': 4.2, 'lng': 'New York'},
+    list_of_ints=["1", 2, "bad"],
+    a_float="not a float",
+    recursive_model={"lat": 4.2, "lng": "New York"},
     gt_int=21,
 )
 
