@@ -1,0 +1,3 @@
+aiopg[sa]
+pytest
+pytest-aiohttp
