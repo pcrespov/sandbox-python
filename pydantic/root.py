@@ -8,12 +8,16 @@ from pydantic import BaseModel, Field
 class Pet(BaseModel):
     animal: str
 
-
 class Pets(BaseModel):
-    __root__: List[Pet]
+    __root__: List[Pet] = []
 
 
 print(Pets(__root__=[Pet(animal=t) for t in ["dog", "cat"]]))
+print(Pets(__root__=None))
+
+
+
+
 
 
 class ResourceHit(BaseModel):
