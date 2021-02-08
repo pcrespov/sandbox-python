@@ -1,0 +1,6 @@
+fastapi[all]
+httpx
+
+
+#
+aiofiles

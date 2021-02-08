@@ -1,2 +1,3 @@
 pydantic[email,typing_extension,dotenv]
 sqlalchemy
+jsonschema
