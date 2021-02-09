@@ -2,6 +2,7 @@ SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
 
+REPO_BASE_DIR := $(shell git rev-parse --show-toplevel)
 
 
 .PHONY: devenv
