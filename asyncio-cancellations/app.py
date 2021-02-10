@@ -1,3 +1,11 @@
+#
+# https://docs.aiohttp.org/en/stable/web_advanced.html
+# https://docs.python.org/3/library/asyncio-task.html#asyncio.Task.cancel
+#
+#
+#
+
+
 import asyncio
 import io
 from asyncio import CancelledError, iscoroutinefunction
