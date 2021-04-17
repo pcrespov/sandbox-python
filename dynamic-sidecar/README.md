@@ -72,7 +72,7 @@ So using our API Design Guidelines, we suggest a more [resource oriented design]
 
 - **C**reate(compose_file) -> 202
   - ``POST /containers``
-  - docker-compose config -f {}; docker-compose up -f {} --no-start
+  - ``docker-compose config -f {}``  +  ``docker-compose up -f {} --no-start``
 - **R**ead(id)
   - get item
     - ``GET  /containers/{id}``
@@ -100,20 +100,20 @@ So using our API Design Guidelines, we suggest a more [resource oriented design]
   - ``GET /containers/{id}/logs``
   - means ``docker-compose logs {id}``
 
-    Reverse proxy to docker engine API
 
 etc ...
 
 ### /docker/containers/{id}/*
 
 - ``POST /containers/{id}/docker`` 
+-  For a reverse proxy to docker engine API
 - Allows direct access to the [docker engine HTTP API](https://docs.docker.com/engine/api/v1.30/#tag/Container) on the sidecar host
 - Special entrypoint useful to **develop prototypes** that can be later "frozen" in a separate entrypoint.
 - This approach is found in portainer. It DOES NOT exposes specific endpoints to manage your Docker resources (create a container, remove a volume, etc...). Instead, it acts as a reverse-proxy to the [Docker HTTP API](https://docs.docker.com/engine/api/v1.30/). This means that you can execute Docker requests via the [Portainer HTTP API](https://app.swaggerhub.com/apis/deviantony/Portainer/2.0.1#/settings/get_settings_public)
 
 
 
-SEE [docker engine HTTP API](https://docs.docker.com/engine/api/v1.30/#tag/Container)
+SEE [docker engine HTTP API](https://docs.docker.com/engine/api/v1.30/#tag/Container) !!!! <<<<<< ----
 
 
 # Running code
