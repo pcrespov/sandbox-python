@@ -1,64 +1,8 @@
+# Dynamic Sydecar API Rationale
 
+The API essentialy evolves around some parts of the docker-compose CLI
 
-### /containers/
-
-- create(docker-compose) -> 202
-  - POST /containers
-  - docker-compose config -f {}; docker-compose up -f {} --no-start
-- list
-  - GET  /containers
-- read(id)
-  - GET  /containers/{id}
-- ~~update~~
-- ~~delete~~
-- up
-  - POST  /containers:up
-  - means (pull) create + start containers
-- down
-  - POST  /containers:down
-  - means stop + remove containers
-
-
-
-### /containers/logs
-- list
-  - GET /containers/logs
-  - means docker-compose logs
-
-### /containers/{id}/logs
-- read
-  - GET /containers/{id}/logs
-  - means docker-compose logs {id}
-
-###  /compose/{}/docker/[...]
-    Reverse proxy to docker engine API
-
-
-
-
-
-https://docs.docker.com/engine/api/v1.30/
-
-
-
-### POST /containers/{id}/docker API engine -> docker engine docker API
-
-
-
-https://app.swaggerhub.com/apis/deviantony/Portainer/2.0.1#/settings/get_settings_public
-
-Execute Docker requests
-Portainer DO NOT expose specific endpoints to manage your Docker resources (create a container, remove a volume, etc...).
-
-Instead, it acts as a reverse-proxy to the Docker HTTP API. This means that you can execute Docker requests via the Portainer HTTP API.
-
-To do so, you can use the /endpoints/{id}/docker
-
-
-
-
------
-
+```
  docker-compose --help
 Define and run multi-container applications with Docker.
 
@@ -117,3 +61,67 @@ Commands:
   unpause            Unpause services
   up                 Create and start containers
   version            Show version information and quit
+
+```
+
+
+So using our API Design Guidelines, we suggest a more [resource oriented design](https://cloud.google.com/apis/design/resources). For each collection or resource we start with [standard](https://cloud.google.com/apis/design/standard_methods) methods (i.e. CRUD) followed by [custom](https://cloud.google.com/apis/design/custom_methods) methods.
+
+
+### /containers collection
+
+- **C**reate(compose_file) -> 202
+  - ``POST /containers``
+  - docker-compose config -f {}; docker-compose up -f {} --no-start
+- **R**ead(id)
+  - get item
+    - ``GET  /containers/{id}``
+  - list iterms
+    - ``GET  /containers``
+- ~~**U**pdate~~
+- ~~**D**elete~~
+- up
+  - ``POST  /containers:up``
+  - means (pull) + create + start containers
+- down
+  - ``POST  /containers:down``
+  - means stop + remove containers
+
+
+
+### /containers/logs
+- list
+  - ``GET /containers/logs``
+  - means ``docker-compose logs``
+
+### /containers/{id}/logs 
+
+- read
+  - ``GET /containers/{id}/logs``
+  - means ``docker-compose logs {id}``
+
+    Reverse proxy to docker engine API
+
+etc ...
+
+### /docker/containers/{id}/*
+
+- ``POST /containers/{id}/docker`` 
+- Allows direct access to the [docker engine HTTP API](https://docs.docker.com/engine/api/v1.30/#tag/Container) on the sidecar host
+- Special entrypoint useful to **develop prototypes** that can be later "frozen" in a separate entrypoint.
+- This approach is found in portainer. It DOES NOT exposes specific endpoints to manage your Docker resources (create a container, remove a volume, etc...). Instead, it acts as a reverse-proxy to the [Docker HTTP API](https://docs.docker.com/engine/api/v1.30/). This means that you can execute Docker requests via the [Portainer HTTP API](https://app.swaggerhub.com/apis/deviantony/Portainer/2.0.1#/settings/get_settings_public)
+
+
+
+SEE [docker engine HTTP API](https://docs.docker.com/engine/api/v1.30/#tag/Container)
+
+
+# Running code
+
+```cmd
+python -m venv .venv; source venv/bin/activate
+make install
+make up
+```
+
+Open http://0.0.0.0:8000/  to see the swagger and look at the details of the specs (e.g. errors etc)

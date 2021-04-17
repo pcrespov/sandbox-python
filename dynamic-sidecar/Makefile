@@ -1,11 +1,8 @@
-
-
 .PHONY: install up
 
-
 install:
-	pip-sync install fastapi
-
+	pip install pip-tools
+	pip-sync requirements.txt
 
 up:
-	python dynamic_sidecar.py
+	uvicorn ds.main:the_app --host 0.0.0.0 --reload --reload-dir ds 

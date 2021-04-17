@@ -1,9 +1,6 @@
-from fastapi import FastAPI, APIRouter
-
-from . import containers
+from .application import create_app
 
 
+the_app = create_app()
 
-## uvicorn ds.main:app --reload --host=0.0.0.0
-app = FastAPI(docs_url="/dev/doc")
-app.include_router(containers.router)
+## uvicorn ds.main:the_app --reload --host=0.0.0.0
