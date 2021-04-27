@@ -1,0 +1,33 @@
+version: 3
+services:
+    api-server:
+        build:
+            target: fastapi-app
+        command: api-server:app
+    catalog:
+        build:
+            target: fastapi-app
+        command: catalog:app
+    director2:
+        build:
+            target: fastapi-app
+    storage:
+        build:
+            target: aiohttp-app
+        command: storage.py
+    web-server:
+        build:
+            target: aiohttp-app
+
+
+    postgres:
+    
+    redis:
+    
+    minio:
+
+    rabbit:
+
+    traffik:
+
+    
