@@ -114,3 +114,7 @@ cws/6/output.txt
 
 
 *ignore*
+
+prefect-samples/sleepers-flow.json
+prefect-samples/sleepers-flow.svg
+prefect-samples/docker-compose.yml
