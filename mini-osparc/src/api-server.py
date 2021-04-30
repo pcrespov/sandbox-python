@@ -6,7 +6,12 @@ routes = Routes()
 async def health():
     return None
 
-    
+@routes.get("/status")
+async def status():
+    return None
+
+
+
 app = FastAPI()
 app.add_route(routes)
 

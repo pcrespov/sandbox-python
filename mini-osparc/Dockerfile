@@ -1,6 +1,5 @@
 FROM python-3.8 as base
 
-
 RUN pip install --upgrade \
         pip \
         wheel\
