@@ -67,7 +67,7 @@ with Flow("Say hi!") as flow:
     name = Parameter("name")
     say_hello(name)
 
-    #flow.run(name="foo")
+    flow.run(name="pedro")
 
 
 ## IMPERATIVE API ----------
@@ -97,7 +97,7 @@ if False:
         flow.run(name="bar")
 
 
-flow.register(project_name="test")
+#flow.register(project_name="test")
 
 # In [14]: !prefect create project 'test'
 # test created
