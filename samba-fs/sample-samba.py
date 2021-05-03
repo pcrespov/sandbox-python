@@ -1,8 +1,8 @@
-from pprint import pprint
 from datetime import datetime
+from pprint import pprint
+
 import fs
 import fs.smbfs
-
 
 # SEE https://hub.docker.com/r/pwntr/samba-alpine/
 user = "rio"
@@ -14,10 +14,16 @@ host = "127.0.0.1"
 assert user
 assert password
 
-with fs.open_fs(f'smb://{user}:{password}@{host}/') as smb_fs:
+with fs.open_fs(f"smb://{user}:{password}@{host}/") as smb_fs:
+
+    smb_fs.makedirs("/data/foo", recreate=True)
+    with smb_fs.open("/data/foo/test.txt", "at") as f:
+        f.write(datetime.now().isoformat())
+
     smb_fs.tree(path="/")
 
-    smb_fs.makedir("foo")
-
-    info = smb_fs.getinfo(path="/", namespaces=['details', 'access'])
-    pprint(info)
+    info = smb_fs.getinfo(path="/data/foo", namespaces=["details", "access"])
+    print(info)
+    print(info.name, info.type, info.uid, info.gid, info.accessed)
+    print(info.namespaces)
+    print(info.permissions)
