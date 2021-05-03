@@ -1,8 +1,8 @@
-.PHONY: run rm
+.PHONY: run rm install
 
-dev:
-	python -m venv .venv
-	.venv/bin/pip install -r requirements.txt
+install:
+	pip install -U pip setuptools wheel
+	pip install -r requirements.txt
 
 
 # SEE https://hub.docker.com/r/pwntr/samba-alpine/
