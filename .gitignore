@@ -120,3 +120,5 @@ prefect-samples/sleepers-flow.svg
 prefect-samples/docker-compose.yml
 prefect-tutorial/etl-flow.json
 prefect-tutorial/etl-flow.svg
+
+dask-worker-space
