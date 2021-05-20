@@ -12,7 +12,7 @@ def sleeper(delay: int = 1):
     return delay
 
 
-with Flow("sleepers a lot 3") as flow:
+with Flow("new sleepers") as flow:
 
     s0 = [sleeper() for _ in range(3)]
 
