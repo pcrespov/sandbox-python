@@ -1,4 +1,7 @@
-../requirements.txt
-dask 
-distributed
+-r ../requirements.txt
+
+
+dask[complete]
+
 bokeh
+graphviz
