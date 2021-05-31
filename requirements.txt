@@ -4,3 +4,4 @@ pip-tools
 isort
 black
 
+ipykernel
