@@ -1,10 +1,6 @@
-from pydantic import BaseSettings
-from . import _base
+from settingslib.base_settings import BaseCustomSettings
 
-class MyModule2Settings(BaseSettings):
+class AnotherModuleSettings(BaseCustomSettings):
     """ Settings for module 2 """
 
-    some_other_value: int
-
-    class Config(_base.CommonConfig):
-        pass
+    MYMODULE2_SOME_OTHER_VALUE: int

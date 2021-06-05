@@ -1,83 +1,37 @@
-from pydantic import BaseSettings
+import os
+from contextlib import suppress
+from typing import FrozenSet
 
 from modules.mod1_settings import MyModuleSettings
-from modules.mod2_settings import MyModule2Settings
-from modules import _base
+from modules.mod2_settings import AnotherModuleSettings
+from settingslib.base_settings import BaseCustomSettings
+from settingslib.postgres import PostgresSettings
+
+from pydantic import class_validators
+from pydantic.error_wrappers import ValidationError
+from pydantic.fields import FieldInfo, Field
 
 
-# (1) Settings factory.
+class Settings(BaseCustomSettings):
+    APP_HOST: str
+    APP_PORT: int = 3
 
-# This is my preferred way
-def create_settings_class():
-    # controls when environs for subsettings are captured
-
-    class Settings(BaseSettings):
-        """ Main application settings """
-
-        host: str
-        port: int
-
-        settings1: MyModuleSettings = MyModuleSettings()
-        settings2: MyModule2Settings = MyModule2Settings()
-
-        class Config(_base.CommonConfig):
-            pass
-
-    return Settings
-
-
-# could be implemented as this ... but more verbose!
-def create_factory():
-    # controls when environs for subsettings are captured
-
-    class Settings(BaseSettings):
-        host: str
-        port: int
-
-        settings1: MyModuleSettings = MyModuleSettings()
-        settings2: MyModule2Settings = MyModule2Settings()
-
-        class Config(_base.CommonConfig):
-            pass
-
-    def create(**values):
-        return Settings(**values)
-
-    # attach some attributes to the Functor
-    create.Settings = Settings
-    create.create = create # syntax sweetener
-    return create
-
-
-################################################################################################
-
-
-# (2) Adding a factory as a class method
-#
-class Settings2(BaseSettings):
-    host: str
-    port: int
-
-    settings1: MyModuleSettings
-    settings2: MyModule2Settings
-
-    class Config(_base.CommonConfig):
-        pass
+    APP_POSTGRES: PostgresSettings
+    APP_MODULE_1: MyModuleSettings = Field(None, description="Some Module Example")
+    APP_MODULE_2: AnotherModuleSettings
 
     @classmethod
-    def create_from_environ(cls, **kwargs):
-        kwargs.setdefault("settings1", MyModuleSettings())
-        kwargs.setdefault("settings2", MyModule2Settings())
-        return cls(**kwargs)
+    def create_from_env(cls) -> "Settings":
+        # Builds defaults at this point
+        for name, default_cls in [
+            ("APP_POSTGRES", PostgresSettings),
+            ("APP_MODULE_1", MyModuleSettings),
+            ("APP_MODULE_2", AnotherModuleSettings),
+        ]:
+            with suppress(ValidationError):
+                default = default_cls()
+                field_obj = cls.__fields__[name]
+                field_obj.default = default
+                field_obj.required = False
 
-
-################################################################################################
-
-# (3) a global reading from .env or environs
-# - my least favorite
-#
-# - global!
-# - fails upon import if validation fails: difficult to debug!
-# - difficult to debug: difficult to control creation time
-#
-# the_settings = Settings2(settings1=MyModuleSettings(), settings2=MyModule2Settings())
+        return cls()

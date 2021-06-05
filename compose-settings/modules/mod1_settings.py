@@ -1,12 +1,8 @@
 from pydantic import BaseSettings, Field
-from . import _base
+from settingslib.base_settings import BaseCustomSettings
 
-
-class MyModuleSettings(BaseSettings):
+class MyModuleSettings(BaseCustomSettings):
     """
         Settings for Module 1
     """
-    value: int
-
-    class Config(_base.CommonConfig):
-        env_prefix = "MYMODULE_"
+    MYMODULE_VALUE: int = Field(..., description="Some value for module 1")
