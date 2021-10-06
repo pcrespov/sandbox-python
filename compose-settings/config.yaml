@@ -1,6 +1,0 @@
-host: localhost
-port: 33
-settings1:
-  value: 55
-settings2:
-  some_other_value: 22

@@ -1,5 +1,0 @@
-# https://docs.aiohttp.org/en/stable/web_advanced.html
-aiohttp
-
-# https://github.com/aio-libs/aiohttp-debugtoolbar
-aiohttp_debugtoolbar
