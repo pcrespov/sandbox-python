@@ -1,6 +1,4 @@
-# python-samples
-
-Playground for python code
+# python-samples: *aiolibs-stuff* branch
 
 
-This is an example
+Sandbox for trials with libs at https://github.com/aio-libs
