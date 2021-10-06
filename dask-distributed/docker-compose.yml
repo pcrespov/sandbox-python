@@ -1,7 +1,14 @@
 version: "3.1"
 
 services:
+
   scheduler:
+    #build:
+    # subdir still not supported. SEE Note in
+    # https://docs.docker.com/engine/reference/commandline/build/#git-repositories
+    # https://github.com/moby/buildkit/issues/1684
+    #context: github.com/dask/dask-docker.git#master:base
+    #dockerfile: Dockerfile
     image: daskdev/dask
     hostname: dask-scheduler
     ports:
@@ -10,6 +17,9 @@ services:
     command: ["dask-scheduler"]
 
   worker:
+    # build:
+    #   context: github.com/dask/dask-docker.git#master:base
+    #   dockerfile: Dockerfile
     image: daskdev/dask
     hostname: dask-worker
     command: ["dask-worker", "tcp://scheduler:8786"]
@@ -21,3 +31,22 @@ services:
       - "8888:8888"
     environment:
       - DASK_SCHEDULER_ADDRESS="tcp://scheduler:8786"
+    volumes:
+      - ./:/home/jovyan/work
+
+  # ops
+  portainer:
+    image: portainer/portainer-ce
+    hostname: portainer
+    ports:
+      - "9000:9000"
+    command: -H unix:///var/run/docker.sock
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+
+
+
+
+volumes:
+  portainer_data: {}
