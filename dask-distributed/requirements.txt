@@ -1,7 +1,0 @@
--r ../requirements.txt
-
-
-dask[complete]
-
-bokeh
-graphviz
