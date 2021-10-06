@@ -1,0 +1,94 @@
+version: "3.1"
+
+services:
+
+  scheduler:
+    #build:
+    # subdir still not supported. SEE Note in
+    # https://docs.docker.com/engine/reference/commandline/build/#git-repositories
+    # https://github.com/moby/buildkit/issues/1684
+    #context: github.com/dask/dask-docker.git#master:base
+    #dockerfile: Dockerfile
+    image: local/dask
+    # image: local/dask-sidecar:production
+    ports:
+      - "8786:8786"
+      # http://127.0.0.1:8787/status
+      - "8787:8787"
+    volumes:
+      - ./scheduler:/work
+    environment:
+      # EXTRA_PIP_PACKAGES: docker
+      # EXTRA_APT_PACKAGES:
+      # EXTRA_CONDA_PACKAGES
+      - PYTHONPATH="/work"
+
+    command: ["dask-scheduler"]
+
+  worker:
+    # build:
+    #   context: github.com/dask/dask-docker.git#master:base
+    #   dockerfile: Dockerfile
+    image: local/dask
+    # image: local/dask-sidecar:production
+    volumes:
+      - input:/home/scu/input
+      - output:/home/scu/output
+      - log:/home/scu/log
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${ETC_HOSTNAME:-/etc/hostname}:/home/scu/hostname:ro
+    environment:
+      - EXTRA_PIP_PACKAGES=docker
+      # EXTRA_APT_PACKAGES:
+      # EXTRA_CONDA_PACKAGES:
+      - PYTHONPATH="/work"
+      - DASK_SCHEDULER_ADDRESS="tcp://scheduler:8786"
+
+    volumes:
+      - ./worker:/work
+    command: ["dask-worker", "tcp://scheduler:8786"]
+
+  workflows:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: local/workflows
+    ports:
+      - "8000:8000"
+    environment:
+      - DASK_SCHEDULER_ADDRESS="tcp://scheduler:8786"
+    volumes:
+      - ./workflows:/app
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--reload"]
+
+
+  # operations ------------
+  notebook:
+    image: local/dask-notebook
+    ports:
+      - "8888:8888"
+    environment:
+      - DASK_SCHEDULER_ADDRESS="tcp://scheduler:8786"
+    volumes:
+      - ./notebook:/home/jovyan/work
+
+  portainer:
+    image: portainer/portainer-ce
+    ports:
+      - "9000:9000"
+    command: -H unix:///var/run/docker.sock
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+
+
+
+
+volumes:
+  portainer_data: {}
+  input: {}
+  output: {}
+  log: {}
+
+# VERY important to keep dask versions in sync!
+# from dask.distributed.versions import get_versions

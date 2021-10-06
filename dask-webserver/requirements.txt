@@ -1,0 +1,8 @@
+# service
+fastapi
+uvicorn[standard]
+
+dask
+
+# client
+httpx
