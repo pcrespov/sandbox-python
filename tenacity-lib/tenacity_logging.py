@@ -1,10 +1,8 @@
+import json
 import logging
-from os import stat
 import sys
 from functools import wraps
 from typing import Any, Callable, Counter, Dict
-import json
-
 
 from tenacity import *
 from tenacity import RetryCallState
@@ -45,7 +43,9 @@ def create_before_sleep_policy(custom_logger):
             retry_state.attempt_number,
             retry_state.outcome,
         )
+
     return _policy
+
 
 RETRY_POLICY = dict(
     wait=wait_fixed(0.1),
@@ -92,8 +92,6 @@ if __name__ == "__main__":
     fails_and_then_succeeds()
     log_success(fails_and_then_succeeds)
 
-
     print("-" * 100)
     simply_succeed()
     log_success(simply_succeed)
-
