@@ -1,7 +1,10 @@
 import logging
+from os import stat
 import sys
 from functools import wraps
-from typing import Callable, Counter
+from typing import Any, Callable, Counter, Dict
+import json
+
 
 from tenacity import *
 from tenacity import RetryCallState
@@ -15,31 +18,34 @@ class MyException(Exception):
     pass
 
 
-def log_success(wrapped: Callable):
-    @wraps(wrapped)
-    def wrapper(*args, **kwargs):
-        res = wrapped(*args, **kwargs)
-        logger.info("I went through")
-        return res
+def log_success(fun, log: logging.Logger = logger):
+    if hasattr(fun, "retry"):
+        if not fun.retry.statistics:
+            print("this function was never called")
 
-    return wrapper
+        if fun.retry.statistics.get("attempt_number", 0) > 1:
+            print("this function was retried more than once and now it went thru")
+
+            print(json.dumps(fun.retry.statistics, indent=2))
+            print("Finally went through!!")
 
 
-def my_before_sleep(retry_state: RetryCallState):
-    # increases level with number of attempts
-    if retry_state.attempt_number < 3:
-        loglevel = logging.INFO
-    else:
-        loglevel = logging.WARNING
+def create_before_sleep_policy(custom_logger):
+    def _policy(retry_state: RetryCallState):
+        # increases level with number of attempts
+        if retry_state.attempt_number < 3:
+            loglevel = logging.INFO
+        else:
+            loglevel = logging.WARNING
 
-    logger.log(
-        loglevel,
-        "Retrying %s: attempt %s ended with: %s",
-        retry_state.fn.__name__,
-        retry_state.attempt_number,
-        retry_state.outcome,
-    )
-
+        custom_logger.log(
+            loglevel,
+            "Retrying %s: attempt %s ended with: %s",
+            retry_state.fn.__name__,
+            retry_state.attempt_number,
+            retry_state.outcome,
+        )
+    return _policy
 
 RETRY_POLICY = dict(
     wait=wait_fixed(0.1),
@@ -48,7 +54,7 @@ RETRY_POLICY = dict(
     # logs before/after retrying (because it failed)
     # before=before_log(logger, logging.DEBUG),
     # after=after_log(logger, logging.DEBUG),
-    before_sleep=my_before_sleep,
+    before_sleep=create_before_sleep_policy(logger),
 )
 
 
@@ -69,6 +75,11 @@ def fails_and_then_succeeds():
         raise MyException("Fail")
 
 
+@retry(**RETRY_POLICY)
+def simply_succeed():
+    return 1
+
+
 if __name__ == "__main__":
     try:
         print("-" * 100)
@@ -79,4 +90,10 @@ if __name__ == "__main__":
 
     print("-" * 100)
     fails_and_then_succeeds()
-    print(fails_and_then_succeeds.retry.statistics)
+    log_success(fails_and_then_succeeds)
+
+
+    print("-" * 100)
+    simply_succeed()
+    log_success(simply_succeed)
+
