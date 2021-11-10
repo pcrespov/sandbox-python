@@ -1,6 +1,6 @@
-# python-samples
+# python sandbox
 
-Playground for python code
+Playground for python coding
 
 Every branch as `*.stuff` deals with a topic, namely
   * [``master``](https://github.com/pcrespov/sandbox-python/tree/master) - mainly python (language, stdlib) and sometimes a first hint to a library
