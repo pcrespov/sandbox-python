@@ -1,6 +1,10 @@
 from pathlib import Path
 
 import docker
+import json
+import re
+
+COLOR_ENCODING_RE = re.compile(r"\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]")
 
 
 def main():
@@ -14,11 +18,21 @@ def main():
 
     # get the services logs
     for container in all_containers:
-        service_file = out_dir / f"{container.name}.log"
-        service_file.write_text(
+
+        logs = COLOR_ENCODING_RE.sub(
+            "",
             container.logs(
                 timestamps=True, stdout=True, stderr=True, stream=False
-            ).decode()
+            ).decode(),
+        )
+        (out_dir / f"{container.name}.log").write_text(logs)
+
+        # with (out_dir / f"{container.name}.log").open("wt") as fh:
+        #     for line in container.logs(timestamps=True, stdout=True, stderr=True, stream=True):
+        #         fh.write( COLOR_ENCODING_RE.sub("", line.decode()) )
+
+        (out_dir / f"{container.name}.json").write_text(
+            json.dumps(container.attrs, indent=2)
         )
 
     if all_containers:
