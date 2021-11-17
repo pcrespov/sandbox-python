@@ -1,0 +1,2 @@
+# just run 'pip-sync'
+click
