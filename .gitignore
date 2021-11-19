@@ -112,7 +112,6 @@ cws/5/hello.tar
 cws/5/hello.txt
 cws/6/output.txt
 
-
 *ignore*
 samba-fs/share/*
 
@@ -124,3 +123,6 @@ prefect-tutorial/etl-flow.svg
 
 dask-worker-space
 dsk.svg
+
+# profiler artifacts
+*.cprof
