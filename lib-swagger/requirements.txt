@@ -1,0 +1,9 @@
+--requirements ../requirements.txt
+
+aiohttp
+# plugin https://aiohttp-swagger.readthedocs.io/en/latest/
+aiohttp-swagger[performance]
+
+
+# for models
+pydantic
