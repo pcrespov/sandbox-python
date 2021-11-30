@@ -1,0 +1,30 @@
+{
+    "e9333715-51f3-506d-8962-2d4f0c1fe3cf": {
+            "key": "simcore/services/comp/itis/sleeper",
+            "version": "2.1.1",
+            "label": "sleeper 1",
+            "inputs": {
+                "input_1": "single_number.txt",
+                "input_2": 2,
+                "input_3": false,
+                "input_4": 4
+            },
+            "outputs":{
+                "outputs_1": 33
+            }
+    },
+    "afd2e063-d656-5cc3-83d5-80a9ffa75905": {
+        "key": "simcore/services/comp/itis/sleeper",
+        "version": "2.1.1",
+        "label": "sleeper 2",
+        "inputs": {
+            "input_1": "single_number.txt",
+            "input_2": {
+                "nodeUuid": "e9333715-51f3-506d-8962-2d4f0c1fe3cf",
+                "output": "output_1"
+            },
+            "input_3": false,
+            "input_4": 4
+        }
+    }
+}
