@@ -3,5 +3,3 @@ pylint
 pip-tools
 isort
 black
-
-ipykernel
