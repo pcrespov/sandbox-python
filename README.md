@@ -1,6 +1,6 @@
-# python-samples
-
-Playground for python code
+# python-samples : pytest
 
 
-This is an example
+- https://docs.pytest.org
+- https://docs.pytest.org/en/6.2.x/goodpractices.html
+- https://pypi.org/project/pytest-profiling/
