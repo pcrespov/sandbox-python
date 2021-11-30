@@ -10,6 +10,22 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal"
-        }
+        },
+        {
+            "name": "Python: Run Current File's Test Suite",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": [
+                "-s",
+                "--log-cli-level=INFO",
+                "--ff",
+                "--setup-show",
+                "${file}"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
     ]
 }
