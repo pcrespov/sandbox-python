@@ -1,6 +1,3 @@
 # python-samples
 
-Playground for python code
-
-
-This is an example
+fastapi and pydantic-like libraries
