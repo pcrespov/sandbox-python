@@ -115,3 +115,49 @@ def exclude_in_Field_parameter_2():
     )
 
     print(t.dict(exclude={"value": True, "user": {"username"}}))
+
+
+from typing import Optional, Type, Set
+from pydantic import BaseModel
+
+
+def variants_of_user_for_a_crud_api():
+
+    def create_model_for_replace_as(
+        reference_model: Type[BaseModel], *, exclude: Optional[Set[str]] = None
+    ):
+        raise NotImplementedError
+
+    def create_model_for_update_as(
+        reference_model: Type[BaseModel], *, exclude: Optional[Set[str]] = None
+    ):
+        raise NotImplementedError
+
+
+    # ----
+
+    class User(BaseModel):
+        user_id: int  # server
+        username: str
+        password: str
+
+    print(User.__dict__)
+    print(User.__fields__)
+
+    UserOut = create_model_for_replace_as(User, exclude={"password"})
+
+    class UserOut(User):
+        password: str = Field(..., exclude=True)
+
+    class UserInCreate(User):
+        user_id: str = Field(..., exclude=True)  # this is decided on the server-side
+        repeat_password: str = Field(...)
+
+    UserInUpdate = create_model_for_update_as(UserInCreate, exclude=None)
+
+    class UserInUpdate(User):
+        username: Optional[str]
+        password: Optional[str]
+        repeat_password: str = Field(...)
+
+    print(UserOut.__fields__)
