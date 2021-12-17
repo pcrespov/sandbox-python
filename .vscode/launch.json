@@ -12,14 +12,15 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "Python: Run Current File's Test Suite",
+            "name": "Python: Run Test Suite in Current File",
             "type": "python",
             "request": "launch",
             "module": "pytest",
             "args": [
-                "-s",
+                "-sx",
                 "--log-cli-level=INFO",
                 "--ff",
+                "--pdb",
                 "--setup-show",
                 "${file}"
             ],
