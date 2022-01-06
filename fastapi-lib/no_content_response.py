@@ -5,8 +5,13 @@ app = FastAPI()
 
 
 @app.get("/", status_code=status.HTTP_204_NO_CONTENT, response_class=Response)
-async def foo():
-    print("foo")
+async def no_content():
+    print("no_content")
+
+
+@app.get("/info")
+async def info():
+    return {"version": 1.0}
 
 
 """
