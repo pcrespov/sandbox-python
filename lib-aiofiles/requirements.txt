@@ -1,0 +1,3 @@
+aiofiles
+pytest
+pytest-asyncio
