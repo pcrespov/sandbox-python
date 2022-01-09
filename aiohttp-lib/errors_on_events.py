@@ -1,11 +1,12 @@
+import inspect
 import json
 
 #
 # https://docs.aiohttp.org/en/stable/web_advanced.html#aiohttp-web-cleanup-ctx
 #
-from contextlib import suppress, contextmanager
+from contextlib import contextmanager, suppress
+
 from aiohttp import web
-import inspect
 
 
 async def good_context(app: web.Application):
@@ -32,7 +33,7 @@ async def bad_context(app: web.Application):
 
 def create_msg(when):
     async def dump_state(app: web.Application):
-        print(f"{when}  app-state:", json.dumps(app._state))
+        print(f"{when} app-state:", json.dumps(app._state))
 
     return dump_state
 
