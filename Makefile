@@ -22,7 +22,8 @@ autoformat: ## runs black python formatter on this service's code. Use AFTER mak
 	@python3 -m black --verbose \
 		--exclude "/(\.eggs|\.git|\.hg|\.mypy_cache|\.nox|\.tox|\.venv|\.svn|_build|buck-out|build|dist|migration|client-sdk|generated_code)/" \
 		$(CURDIR)
-
+	# cleanup unused imports
+	@pycln --all $(CURDIR)
 
 
 # CLEAN
