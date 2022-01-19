@@ -5,11 +5,22 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Current File",
+            "name": "Python: Run Test",
             "type": "python",
             "request": "launch",
-            "program": "${file}",
-            "console": "integratedTerminal"
-        }
+            "module": "pytest",
+            "args": [
+                "--ff",
+                "--log-cli-level=INFO",
+                "--pdb",
+                "--setup-show",
+                "-sx",
+                "-vv",
+                "${file}"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
     ]
 }
