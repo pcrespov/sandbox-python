@@ -208,7 +208,8 @@ def test_1(monkeypatch, model_class_factory):
         # WARNING: patch.setenv("VALUE_NULLABLE_REQUIRED", None)
         # leads to E   pydantic.env_settings.SettingsError: error parsing JSON for "value_nullable_required"
         # because type(M.VALUE_NULLABLE_REQUIRED) is S that is a model and settings try to json.decode from it
-        # To null it, use instead
+        # TODO: So far, i only manage to null it setting VALUE_NULLABLE_REQUIRED=None in the constructor
+        # FIXME: if set to {} -> it returns S1 ???
         patch.setenv("VALUE_NULLABLE_REQUIRED", S3)
 
 
