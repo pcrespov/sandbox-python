@@ -70,6 +70,27 @@ def eval_regression(
     return sensitivity, linearity
 
 
+
+def main():
+
+    paramrefs=[1,2,3]
+    paramdiff=[0.1, 0.1, 0.5]
+     
+    # //
+    refval = myfunc(paramrefs)
+
+    for i,paramtestplus, paramtestminus in iter_sensitivity(paramrefs=paramrefs, paramdiff=paramdiff, diff_or_fact=True):
+        
+        # //
+        testvalplus = myfunc(paramtestplus)
+        testvalminus = myfunc(paramtestminus)
+
+        eval_regression(paramrefs, paramtestplus, paramtestminus, refval, testvalplus, testvalminus, i=i)
+
+
+
+
+
 def sensitivity(
     func: Callable[[Sequence[T]], T],
     paramrefs: Sequence[T],
@@ -125,90 +146,6 @@ def sensitivity(
 
     return refval, sensitivities, linearities
 
-
-def uncertainty(
-    func, paramrefs, paramuncerts, paramuncerttypes, diff_or_fact, lin_or_power
-):
-    refval, sensitivities, linearities = sensitivity(
-        func, paramrefs, paramuncerts, diff_or_fact, lin_or_power
-    )
-    uncerts = []
-    totaluncert = 0.0
-    totaluncertdB = 0.0
-    if (len(paramrefs) != len(paramuncerts)) or (
-        len(paramrefs) != len(paramuncerttypes)
-    ):
-        return [refval, uncerts, totaluncert, totaluncertdB, sensitivities, linearities]
-    for i in range(len(paramrefs)):
-        if lin_or_power:
-            if diff_or_fact:
-                uncerts.append(sensitivities[i] * paramuncerts[i])
-            else:
-                uncerts.append(
-                    sensitivities[i] * paramrefs[i] * (paramuncerts[i] - 1)
-                )  # not symmetric
-        else:
-            if diff_or_fact:
-                uncerts.append(
-                    sensitivities[i] * np.log(paramuncerts[i] / paramrefs[i] + 1)
-                )  # not symmetric
-            else:
-                uncerts.append(sensitivities[i] * np.log(paramuncerts[i]))
-        if paramuncerttypes[i] == "R":
-            uncerts[i] /= math.sqrt(3)
-        totaluncert += uncerts[i] ** 2
-    totaluncert = math.sqrt(totaluncert)
-    totaluncertdB = totaluncert
-    if lin_or_power:
-        totaluncertdB = np.log(totaluncert / refval + 1)  # not symmetric
-    else:
-        totaluncert = (np.exp(totaluncertdB) - 1) * refval  # not symmetric
-    return [refval, uncerts, totaluncert, totaluncertdB, sensitivities, linearities]
-
-
-# https://en.wikipedia.org/wiki/Metropolis%E2%80%93Hastings_algorithm
-def MetropolisHastingsUncertainty(
-    func, paramrefs, paramuncerts, paramuncerttypes, initcount, totalcount
-):  # diff_or_fact
-    n = len(paramrefs)
-    jumpfactor = 0.5
-    alpha = 0.0
-    valsum = 0.0
-    val2sum = 0.0
-
-    currentparams = paramrefs.copy()
-
-    counter = 0
-    while counter < totalcount:
-        i = random.randrange(n)
-        candidate = norm.rvs(currentparams[i], paramuncerts[i] * jumpfactor)
-
-        if paramuncerttypes[i] == "R":
-            alpha = uniform.pdf(
-                candidate, paramrefs[i] - paramuncerts[i], 2 * paramuncerts[i]
-            ) / uniform.pdf(
-                currentparams[i], paramrefs[i] - paramuncerts[i], 2 * paramuncerts[i]
-            )
-        else:
-            alpha = norm.pdf(candidate, paramrefs[i], paramuncerts[i]) / norm.pdf(
-                currentparams[i], paramrefs[i], paramuncerts[i]
-            )
-
-        if uniform.rvs() < alpha:
-            currentparams[i] = candidate
-
-        if counter > initcount:
-            val = func(currentparams)
-            valsum += val
-            val2sum += val ** 2
-
-        counter += 1
-
-    valmean = valsum / (totalcount - initcount)
-    val2mean = val2sum / (totalcount - initcount)
-    valstddev = math.sqrt(val2mean - valmean ** 2)
-
-    return [valmean, valstddev]
 
 
 def myfunc(x):
