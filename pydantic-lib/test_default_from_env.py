@@ -38,9 +38,11 @@ def print_defaults(model_cls):
         except ValidationError as err:
             print(err)
 
+
 def dumps_model_class(model_cls):
     d = {field.name: get_attrs_tree(field) for field in model_cls.__fields__.values()}
     return json.dumps(d, indent=2)
+
 
 # IMPLEMENTATION ---------------------------------------------------------------
 
@@ -54,7 +56,7 @@ def create_settings_from_env(field):
     # cannot pass only field.type_ because @prepare_field still not resolved!
 
     def _capture():
-        settings_cls = field.outer_type_ # FIXME: this is wrong
+        settings_cls = field.outer_type_  # FIXME: this is wrong
         sub_settings_cls = field.type_
         try:
             return sub_settings_cls()
@@ -75,7 +77,6 @@ def create_settings_from_env(field):
 
 
 class BaseCustomSettings(BaseSettings):
-
     @validator("*", pre=True)
     @classmethod
     def parse_none(cls, v, field: ModelField):
@@ -138,8 +139,8 @@ class BaseCustomSettings(BaseSettings):
 
 
 @pytest.fixture
-def model_class_factory():
-    def _create_model():
+def model_class_factory(  ):
+    def _create_model(class_name):
         class S(BaseCustomSettings):
             S_VALUE: int
 
@@ -168,7 +169,8 @@ def model_class_factory():
             # cannot be disabled
             VALUE_DEFAULT_ENV: S = Field(auto_default_from_env=True)
 
-        return M1, M2
+
+        return {"M1":M1, "M2": M2, "S": S}[class_name] if class_name else [M1, M2]
 
     return _create_model
 
@@ -177,28 +179,58 @@ def model_class_factory():
 S2 = json.dumps({"S_VALUE": 2})
 S3 = json.dumps({"S_VALUE": 3})
 
+
+
+
 def test_1(monkeypatch, model_class_factory):
 
-    M, _ = model_class_factory()
-    Path("M.json").write_text(dumps_model_class(M))
+    M = model_class_factory("M1")
+    Path("M1.ignore.json").write_text(dumps_model_class(M))
 
     assert M.__fields__["VALUE_NULLABLE_DEFAULT_ENV"].default_factory
-    assert M.__fields__["VALUE_DEFAULT_ENV"].default_factory
-
     assert M.__fields__["VALUE_NULLABLE_DEFAULT_ENV"].get_default() == None
-    
+
+    assert M.__fields__["VALUE_DEFAULT_ENV"].default_factory
     with pytest.raises(AutoDefaultFromEnvError):
         M.__fields__["VALUE_DEFAULT_ENV"].get_default()
 
     with monkeypatch.context() as patch:
 
-        patch.setenv("S_VALUE", "1")
+        patch.setenv("S_VALUE", "1") # allows DEFAULT_ENV to be implemented
+
         patch.setenv("VALUE", S2)
-        patch.setenv("VALUE_NULLABLE_REQUIRED", S3)
+
+        # WARNING: patch.setenv("VALUE_NULLABLE_REQUIRED", None)
+        # leads to E   pydantic.env_settings.SettingsError: error parsing JSON for "value_nullable_required"
+        # because type(M.VALUE_NULLABLE_REQUIRED) is S that is a model and settings try to json.decode from it
+        # To null it, use instead
+        patch.setenv("VALUE_NULLABLE_REQUIRED", "{}")
 
         print_defaults(M)
 
-        obj = M()
+        obj = M(VALUE_NULLABLE_REQUIRED=None)
 
         print(obj.json(indent=2))
-        print("-" * 20)
+
+        assert obj.dict(exclude_unset=True) == {
+            "VALUE": {"S_VALUE": 2},
+            "VALUE_NULLABLE_REQUIRED": None,
+        }
+
+        assert obj.dict() == {
+            "VALUE": {"S_VALUE": 2},
+            "VALUE_DEFAULT": {"S_VALUE": 42},
+            "VALUE_CONFUSING": None,
+            "VALUE_NULLABLE_REQUIRED": None,
+            "VALUE_NULLABLE_OPTIONAL": None,
+            "VALUE_NULLABLE_DEFAULT_VALUE": {"S_VALUE": 42},
+            "VALUE_NULLABLE_DEFAULT_NULL": None,
+            "VALUE_NULLABLE_DEFAULT_ENV": {"S_VALUE": 1},
+            "VALUE_DEFAULT_ENV": {"S_VALUE": 1},
+        }
+
+
+def test_2(monkeypatch, model_class_factory):
+
+    M = model_class_factory("M2")
+    Path("M2.ignore.json").write_text(dumps_model_class(M))
