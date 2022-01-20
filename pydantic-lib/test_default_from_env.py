@@ -38,11 +38,9 @@ def print_defaults(model_cls):
         except ValidationError as err:
             print(err)
 
-
 def dumps_model_class(model_cls):
     d = {field.name: get_attrs_tree(field) for field in model_cls.__fields__.values()}
     return json.dumps(d, indent=2)
-
 
 # IMPLEMENTATION ---------------------------------------------------------------
 
