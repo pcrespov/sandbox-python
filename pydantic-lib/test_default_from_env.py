@@ -178,9 +178,7 @@ S2 = json.dumps({"S_VALUE": 2})
 S3 = json.dumps({"S_VALUE": 3})
 
 
-
-
-def test_1(monkeypatch, model_class_factory):
+def test_wo_envs(model_class_factory):
 
     M = model_class_factory("M1")
     Path("M1.ignore.json").write_text(dumps_model_class(M))
@@ -192,34 +190,46 @@ def test_1(monkeypatch, model_class_factory):
     with pytest.raises(AutoDefaultFromEnvError):
         M.__fields__["VALUE_DEFAULT_ENV"].get_default()
 
+
+
+def test_1(monkeypatch, model_class_factory):
+
+    M = model_class_factory("M1")
+    
     with monkeypatch.context() as patch:
 
-        patch.setenv("S_VALUE", "1") # allows DEFAULT_ENV to be implemented
+        # Environment 
+        # allows DEFAULT_ENV to be implemented
+        patch.setenv("S_VALUE", "1") 
 
+        # sets required
         patch.setenv("VALUE", S2)
 
         # WARNING: patch.setenv("VALUE_NULLABLE_REQUIRED", None)
         # leads to E   pydantic.env_settings.SettingsError: error parsing JSON for "value_nullable_required"
         # because type(M.VALUE_NULLABLE_REQUIRED) is S that is a model and settings try to json.decode from it
         # To null it, use instead
-        patch.setenv("VALUE_NULLABLE_REQUIRED", "{}")
+        patch.setenv("VALUE_NULLABLE_REQUIRED", S3)
 
+
+        # 
         print_defaults(M)
 
-        obj = M(VALUE_NULLABLE_REQUIRED=None)
+        obj = M()
 
         print(obj.json(indent=2))
 
+        # checks
         assert obj.dict(exclude_unset=True) == {
             "VALUE": {"S_VALUE": 2},
-            "VALUE_NULLABLE_REQUIRED": None,
+            "VALUE_NULLABLE_REQUIRED": {"S_VALUE": 3},
         }
 
         assert obj.dict() == {
             "VALUE": {"S_VALUE": 2},
             "VALUE_DEFAULT": {"S_VALUE": 42},
             "VALUE_CONFUSING": None,
-            "VALUE_NULLABLE_REQUIRED": None,
+            "VALUE_NULLABLE_REQUIRED": {"S_VALUE": 3},
             "VALUE_NULLABLE_OPTIONAL": None,
             "VALUE_NULLABLE_DEFAULT_VALUE": {"S_VALUE": 42},
             "VALUE_NULLABLE_DEFAULT_NULL": None,
