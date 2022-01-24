@@ -5,7 +5,9 @@ https://www.commonwl.org/user_guide/
 
 """
 
+import hashlib
 import textwrap
+from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
@@ -18,15 +20,33 @@ def snake_to_camel(subject):
     parts = subject.lower().split("_")
     return parts[0] + "".join(x.title() for x in parts[1:])
 
+    
+def _hash_path(path: Path):
+    hash_sha = hashlib.sha1()
+    with open(path, "rb") as f:
+        # Read and update hash string value in blocks of 4K
+        for byte_block in iter(lambda: f.read(4096), b""):
+            hash_sha.update(byte_block)
+    return hash_sha.hexdigest()
 
 # matches a variable name
 VarName = constr(regex=r"\S", strip_whitespace=True)
 SHA1Str = constr(regex=r"^sha1\$([a-fA-F0-9]{40})$")
 
 
+class CWLClass(Enum):
+    FILE = "File"
+    STDOUT = "stdout"
+    STRING = "string"
+    
+
+
+
 class BaseCWLModel(BaseModel):
     class Config:
         alias_generator = snake_to_camel
+        frozen=True
+        allow_population_by_field_name=True
 
 
 class InputBinding(BaseCWLModel):
@@ -60,13 +80,13 @@ class CWLOutput(BaseCWLModel):
         ...,
         description="When the parameter type ends with a question mark ? it indicates that the parameter is optional.",
     )
-    output_binding: OutputBinding
+    output_binding: Optional[OutputBinding] = None
 
 
-class OutputObject(BaseModel):
+class OutputObject(BaseCWLModel):
     location: str
     basename: str
-    cwl_class: str = Field(..., alias="class") # TODO: pydantic literals or enum?
+    cwl_class: CWLClass = Field(..., alias="class") # TODO: pydantic literals or enum?
     checksum: SHA1Str
     size: int = 0
     path: Path
@@ -86,10 +106,24 @@ class OutputObject(BaseModel):
         }
 
 
+    @classmethod
+    def from_file_path(cls, path: Path) -> "OutputObject":
+        return cls(
+            location = path.as_uri(),
+            basename=path.name,
+            cwl_class = CWLClass.FILE,
+            checksum = f"sha1${_hash_path(path)}",
+            size = path.stat().st_size,
+            path= path.absolute()
+        )
+
+
+
 class CWLNode(BaseCWLModel):
     cwl_version: str
     cwl_class: str = Field(..., alias="class")
     base_command: Union[str, List[str]]
+    stdout: Optional[str] = Field(None, description="If set, the stdout is capture and redirected to the name of the file specified here.""Then add type: stdout on the corresponding output parameter.")
     inputs: Dict[VarName, CWLInput]
     outputs: Optional[Dict[VarName, CWLOutput]] = None  # nullable!
 
@@ -194,3 +228,37 @@ def test_example_returning_output_files():
 
     for obj in OutputObject.Config.schema_extra["examples"]:
         output = OutputObject.parse_obj(obj)
+
+
+def test_example_capturing_stdout(tmp_path: Path):
+    ## https://www.commonwl.org/user_guide/05-stdout/index.html
+    CWL_CONTENT = textwrap.dedent(
+        """
+        #!/usr/bin/env cwl-runner
+
+        cwlVersion: v1.0
+        class: CommandLineTool
+        baseCommand: echo
+        stdout: output.txt
+        inputs:
+            message:
+                type: string
+                inputBinding:
+                    position: 1
+        outputs:
+            example_out:
+                type: stdout
+        """
+    )
+
+    data = yaml.safe_load(CWL_CONTENT)
+    model = CWLNode.parse_obj(data)
+
+
+    output_path = tmp_path / "output.txt"
+    output_path.write_text("foo")
+
+    print(model.json(indent=2))
+
+    output = OutputObject.from_file_path(output_path)    
+    print(output.json(indent=1))
