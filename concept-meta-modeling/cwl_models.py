@@ -3,6 +3,9 @@ Implements a model for CWL specs that fits tutorial
 
 https://www.commonwl.org/user_guide/
 
+
+TODO: actually the schema is here https://www.commonwl.org/draft-3/Workflow.html#Workflow
+TODO: review other workflow languages
 """
 import hashlib
 import re
@@ -43,6 +46,7 @@ VarName = constr(regex=r"\S", strip_whitespace=True)
 SHA1Str = constr(regex=r"^sha1\$([a-fA-F0-9]{40})$")
 
 
+# TYPES: Available primitive types are string, int, long, float, double, and null; complex types are array and record; in addition there are special types File, Directory and Any
 class CWLClass(Enum):
     FILE = "File"
     STDOUT = "stdout"
@@ -136,9 +140,18 @@ class CWLNode(BaseCWLModel):
     inputs: Dict[VarName, CWLInputSpec]
     outputs: Optional[Dict[VarName, CWLOutputSpec]] = None  #  nullable!
 
-    def eval_output_objects(
+
+    def collect_input_objects(self, input_values: Dict[str, Any]) -> Dict[str, Any]:
+        raise NotImplementedError
+
+    def eval_command(self, input_objects: Dict[str, Any]):
+        pass
+
+    def collect_output_objects(
         self, workdir: Path, input_objects: Dict[str, Any]
     ) -> Dict[str, Any]:
+        # expected to run after cmd is executed successfully
+        # collects outputs defined as output_objects
         outputs_specs = {}
         if self.outputs:
             for name, spec in self.outputs.items():
@@ -328,7 +341,7 @@ def test_parameters_references(tmp_path: Path):
     file_path = tmp_path / "goodbye.txt"
     file_path.write_text("bye")
     
-    output_objects = model.eval_output_objects(
+    output_objects = model.collect_output_objects(
         workdir=tmp_path,
         input_objects={
             "tarfile": {"class": "File", "path": "hello.tar"},
