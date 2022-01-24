@@ -4,12 +4,12 @@ Implements a model for CWL specs that fits tutorial
 https://www.commonwl.org/user_guide/
 
 """
-
 import hashlib
+import re
 import textwrap
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Mapping, Optional, Union
 
 import pytest
 import yaml
@@ -20,7 +20,7 @@ def snake_to_camel(subject):
     parts = subject.lower().split("_")
     return parts[0] + "".join(x.title() for x in parts[1:])
 
-    
+
 def _hash_path(path: Path):
     hash_sha = hashlib.sha1()
     with open(path, "rb") as f:
@@ -28,6 +28,15 @@ def _hash_path(path: Path):
         for byte_block in iter(lambda: f.read(4096), b""):
             hash_sha.update(byte_block)
     return hash_sha.hexdigest()
+
+
+def get_from_dict(obj: Mapping[str, Any], dotted_key: str, default=None) -> Any:
+    keys = dotted_key.split(".")
+    value = obj
+    for key in keys[:-1]:
+        value = value.get(key, {})
+    return value.get(keys[-1], default)
+
 
 # matches a variable name
 VarName = constr(regex=r"\S", strip_whitespace=True)
@@ -38,15 +47,13 @@ class CWLClass(Enum):
     FILE = "File"
     STDOUT = "stdout"
     STRING = "string"
-    
-
 
 
 class BaseCWLModel(BaseModel):
     class Config:
         alias_generator = snake_to_camel
-        frozen=True
-        allow_population_by_field_name=True
+        frozen = True
+        allow_population_by_field_name = True
 
 
 class InputBinding(BaseCWLModel):
@@ -63,7 +70,7 @@ class OutputBinding(BaseCWLModel):
     glob: str = Field(..., description="glob match")
 
 
-class CWLInput(BaseCWLModel):
+class CWLInputSpec(BaseCWLModel):
     type: str = Field(
         ...,
         description="When the parameter type ends with a question mark ? it indicates that the parameter is optional.",
@@ -75,7 +82,7 @@ class CWLInput(BaseCWLModel):
         return self.type.endswith("?")
 
 
-class CWLOutput(BaseCWLModel):
+class CWLOutputSpec(BaseCWLModel):
     type: str = Field(
         ...,
         description="When the parameter type ends with a question mark ? it indicates that the parameter is optional.",
@@ -83,10 +90,10 @@ class CWLOutput(BaseCWLModel):
     output_binding: Optional[OutputBinding] = None
 
 
-class OutputObject(BaseCWLModel):
+class OutputFileObject(BaseCWLModel):
     location: str
     basename: str
-    cwl_class: CWLClass = Field(..., alias="class") # TODO: pydantic literals or enum?
+    cwl_class: CWLClass = Field(..., alias="class")  # TODO: pydantic literals or enum?
     checksum: SHA1Str
     size: int = 0
     path: Path
@@ -105,33 +112,57 @@ class OutputObject(BaseCWLModel):
             ]
         }
 
-
     @classmethod
-    def from_file_path(cls, path: Path) -> "OutputObject":
+    def from_file_path(cls, path: Path) -> "OutputFileObject":
         return cls(
-            location = path.as_uri(),
+            location=path.as_uri(),
             basename=path.name,
-            cwl_class = CWLClass.FILE,
-            checksum = f"sha1${_hash_path(path)}",
-            size = path.stat().st_size,
-            path= path.absolute()
-        )
-
+            cwl_class=CWLClass.FILE,  # type: ignore
+            checksum=f"sha1${_hash_path(path)}",
+            size=path.stat().st_size,
+            path=path.absolute(),
+        )  # type: ignore
 
 
 class CWLNode(BaseCWLModel):
     cwl_version: str
     cwl_class: str = Field(..., alias="class")
     base_command: Union[str, List[str]]
-    stdout: Optional[str] = Field(None, description="If set, the stdout is capture and redirected to the name of the file specified here.""Then add type: stdout on the corresponding output parameter.")
-    inputs: Dict[VarName, CWLInput]
-    outputs: Optional[Dict[VarName, CWLOutput]] = None  # nullable!
+    stdout: Optional[str] = Field(
+        None,
+        description="If set, the stdout is capture and redirected to the name of the file specified here."
+        "Then add type: stdout on the corresponding output parameter.",
+    )
+    inputs: Dict[VarName, CWLInputSpec]
+    outputs: Optional[Dict[VarName, CWLOutputSpec]] = None  #  nullable!
+
+    def eval_output_objects(
+        self, workdir: Path, input_objects: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        outputs_specs = {}
+        if self.outputs:
+            for name, spec in self.outputs.items():
+                if spec.output_binding and spec.output_binding.glob:
+                    if match := re.match(
+                            r"^\$\(([\w.]+)\)$", spec.output_binding.glob
+                        ):
+                            # e.g '$(inputs.extractfile)'
+                            dotted_key = match.group(1)
+                            filename = get_from_dict(
+                                input_objects, dotted_key.replace("inputs.", "")
+                            )
+
+                            outputs_specs[name] = OutputFileObject.from_file_path(workdir /filename )
+                    elif spec.type == CWLClass.FILE:
+                        # e.g. '*.txt'
+                        outputs_specs[name] = [ OutputFileObject.from_file_path(p) for p in workdir.glob(pattern=str(spec.output_binding.glob)) ]
+        return outputs_specs
 
 
 # --------------------------------------------------------
 
 
-def test_example_1():
+def test_first_example():
     # https://www.commonwl.org/user_guide/02-1st-example/index.html
     CWL_CONTENT = textwrap.dedent(
         """\
@@ -155,7 +186,7 @@ def test_example_1():
     print(model.json(indent=2))
 
 
-def test_example_2():
+def test_essential_input_parameters():
     # https://www.commonwl.org/user_guide/03-input/index.html
     CWL_CONTENT = textwrap.dedent(
         """ #!/usr/bin/env cwl-runner
@@ -226,8 +257,8 @@ def test_example_returning_output_files():
 
     assert not model.inputs["tarfile"].optional
 
-    for obj in OutputObject.Config.schema_extra["examples"]:
-        output = OutputObject.parse_obj(obj)
+    for obj in OutputFileObject.Config.schema_extra["examples"]:
+        output = OutputFileObject.parse_obj(obj)
 
 
 def test_example_capturing_stdout(tmp_path: Path):
@@ -254,11 +285,58 @@ def test_example_capturing_stdout(tmp_path: Path):
     data = yaml.safe_load(CWL_CONTENT)
     model = CWLNode.parse_obj(data)
 
+    print(model.json(indent=2))
 
     output_path = tmp_path / "output.txt"
     output_path.write_text("foo")
 
+    output = OutputFileObject.from_file_path(output_path)
+    print(output.json(indent=1))
+
+
+def test_parameters_references(tmp_path: Path):
+    # https://www.commonwl.org/user_guide/06-params/index.html
+    CWL_CONTENT = textwrap.dedent(
+        """
+    #!/usr/bin/env cwl-runner
+
+    cwlVersion: v1.0
+    class: CommandLineTool
+    baseCommand: [tar, --extract]
+    inputs:
+        tarfile:
+            type: File
+            inputBinding:
+                prefix: --file
+        extractfile:
+            type: string
+            inputBinding:
+                position: 1
+    outputs:
+        extracted_file:
+            type: File
+            outputBinding:
+                glob: $(inputs.extractfile)    
+     """
+    )
+
+    data = yaml.safe_load(CWL_CONTENT)
+    model = CWLNode.parse_obj(data)
+
     print(model.json(indent=2))
 
-    output = OutputObject.from_file_path(output_path)    
-    print(output.json(indent=1))
+    file_path = tmp_path / "goodbye.txt"
+    file_path.write_text("bye")
+    
+    output_objects = model.eval_output_objects(
+        workdir=tmp_path,
+        input_objects={
+            "tarfile": {"class": "File", "path": "hello.tar"},
+            "extractfile": "goodbye.txt",
+        },
+    )
+
+    for name, obj in output_objects.items():
+        print(name, ":", obj.json(indent=2))
+
+
