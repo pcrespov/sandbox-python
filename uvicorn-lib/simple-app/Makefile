@@ -7,4 +7,11 @@ build:
 
 .PHONY: shell
 shell:
-	docker run -it --user $(shell id -u):$(shell id -g) -v $(CURDIR):/devel --workdir /devel local/simple-app:latest bash
+	docker run -it \
+		--workdir="/home/$(USER)/requirements/tools" \
+		--volume="/etc/group:/etc/group:ro" \
+    	--volume="/etc/passwd:/etc/passwd:ro" \
+		--volume=$(CURDIR):/home/$(USER) \
+		--user=$(shell id -u):$(shell id -g) \
+		local/simple-app:latest \
+		bash
