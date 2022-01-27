@@ -1,8 +1,10 @@
 import random
-from pydantic import BaseModel, Field, constr, StrictBool, StrictInt, StrictFloat
+from ast import parse
+from keyword import iskeyword
 from typing import Dict, Union
 from uuid import UUID
 
+from pydantic import BaseModel, Field, StrictBool, StrictFloat, StrictInt, constr
 
 # Node static metadata: describes static features of this node
 #  https://github.com/ITISFoundation/osparc-simcore/blob/master/packages/models-library/src/models_library/services.py#L306
@@ -57,12 +59,23 @@ class Node(BaseModel):
     version: str
     label: str
     inputs: Dict[VarName, InputTypes]
-    output: Dict[VarName, OutputTypes]
+    outputs: Dict[VarName, OutputTypes]
 
     parent: NodeID
 
 
 # ---------------
+# NOTE: see how Node maps to 'myfun' signature!
+
+
+def myfun(**inputs: Dict[VarName, InputTypes]) -> Dict[VarName, OutputTypes]:
+    outputs = {}
+    # allows for an extra (as many as needed) layer -> can be done with a decorator!
+    # results = kernel_fun(**map(wrapper_to_kernel, inputs))
+    # outputs = kernel_to_wrapper(results)
+    return outputs
+
+
 
 
 parametrization_meta = MetaData()
@@ -99,7 +112,6 @@ x = eval("2*y")
 
 
 
-from ast import parse
 
 # SEE https://stackoverflow.com/questions/36330860/pythonically-check-if-a-variable-name-is-valid
 def is_valid_variable_name(name):
@@ -109,7 +121,6 @@ def is_valid_variable_name(name):
     except (SyntaxError, ValueError, TypeError):
         return False
 
-from keyword import iskeyword
 
 def is_valid_variable_name(name):
     return name.isidentifier() and not iskeyword(name)
