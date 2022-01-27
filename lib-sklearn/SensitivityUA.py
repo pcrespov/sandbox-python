@@ -4,12 +4,12 @@
 # In[1]:
 
 
-import numpy as np
-from sklearn.linear_model import LinearRegression
 import math
-from scipy.stats import norm
-from scipy.stats import uniform
 import random
+
+import numpy as np
+from scipy.stats import norm, uniform
+from sklearn.linear_model import LinearRegression
 
 # does it make sense to keep both diff_or_fact and lin_or_power? we could instead have a single dB option. code would be cleaner and there would not be asymmetry issues
 
@@ -21,7 +21,9 @@ def sensitivity(func, paramrefs, paramdiff, diff_or_fact, lin_or_power):
     sensitivities = [];
     linearities = [];
 
+
     refval=func(paramrefs)
+
 
     if len(paramrefs)!=len(paramdiff):
         return [refval,sensitivities,linearities]
@@ -39,7 +41,11 @@ def sensitivity(func, paramrefs, paramdiff, diff_or_fact, lin_or_power):
             paramtestminus[i]-=paramdiff[i]
         else:
             paramtestminus[i]/=paramdiff[i] #check that not zero
+
+
         testvalplus=func(paramtestplus)
+
+
         testvalminus=func(paramtestminus)
 
         x=np.array([paramrefs[i],paramtestplus[i],paramtestminus[i]]).reshape((-1, 1))
