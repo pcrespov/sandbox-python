@@ -75,7 +75,21 @@ def backend_service(**meta_info):
     return _decorator_function
 
 
-
+# Any kind of link ... 
+#
+# PortLinks
+# FileLinks
+#   etc
+#
+# Can be implemented with some sort of dependency injection
+#
+# e.g. input_1 interface asks for a file and specifically a path to it.
+#      the caller needs to prepare the file in some place accessible to the function
+#      and then pass the path to input_1
+#     
+#   node-ports is (so far) that intermediary 
+#
+#
 
 @backend_service(
     key=f"{FRONTEND_SERVICE_KEY_PREFIX}/computational/pyfixture-sleeper",

@@ -4,21 +4,27 @@ import os
 
 
 class MySettings(BaseSettings):
-    foo: bool = Field(..., env=["FOOLISH", "FOOOO"])
+    FOO: bool = Field(..., env=["FOOLISH", "FOOOO"])
 
 
 os.environ["FOOLISH"] = "YES"
 os.environ["FOOOO"] = "0"
+os.environ["FOO"] = "0"
 
-print(MySettings().json(indent=2))
+
+obj = MySettings()
+print(obj.json(indent=2))
+assert obj.dict() == {"FOO": True}
 
 
 os.environ.pop("FOOLISH")
-print(MySettings().json(indent=2))
-
+obj = MySettings()
+print(obj.json(indent=2))
+assert obj.dict() == {"FOO": False}
 
 os.environ.pop("FOOOO")
 try:
-    assert not MySettings().json(indent=2)
+    # FOO envvar does not matter
+    obj = MySettings()
 except ValidationError as err:
     print("I expected", err)
