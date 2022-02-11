@@ -3,3 +3,7 @@ docker
 
 # https://aiodocker.readthedocs.io/en/latest/index.html
 aiodocker
+
+
+pytest
+pytest-asyncio
