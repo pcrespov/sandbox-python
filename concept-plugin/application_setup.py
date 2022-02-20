@@ -33,6 +33,9 @@ class ModuleCategory(Enum):
     ADDON = 1
 
 
+# Keeps all functions decorated. This is static!
+_functions_decorated_with_app_module_setup: Dict[str, _SetupFunc] = {}
+
 # ERRORS ------------------------------------------------------------------
 
 
@@ -136,6 +139,10 @@ def is_setup_completed(module_name: str, app: web.Application) -> bool:
     return module_name in app[APP_SETUP_COMPLETED_KEY]
 
 
+def get_registered_setups():
+    return _functions_decorated_with_app_module_setup
+
+
 def app_module_setup(
     module_name: str,
     category: ModuleCategory,
@@ -192,6 +199,8 @@ def app_module_setup(
             return {
                 "module_name": module_name,
                 "dependencies": depends,
+                "settings_name": settings_name,
+                # deprecate ---
                 "config_section": section,
                 "config_enabled": config_enabled,
             }
