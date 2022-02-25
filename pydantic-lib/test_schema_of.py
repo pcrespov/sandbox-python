@@ -91,7 +91,13 @@ class Model(BaseModel):
     users: typing.List[EmailStr]
 
 
-print(Model(users=["a@asdf.com", ]))
+print(
+    Model(
+        users=[
+            "a@asdf.com",
+        ]
+    )
+)
 
 print(Model.schema_json(indent=2))
 
@@ -102,3 +108,12 @@ print(Model.schema_json(indent=2))
 print("int ->", schema_json_of(int))
 # print("bool ->", schema_json_of(bool))
 # print("List[float] ->", schema_json_of(List[float]))
+
+
+class A(BaseModel):
+    i: int = 3
+    b: bool
+    s: str
+
+
+print(A.schema())
