@@ -1,0 +1,4 @@
+aiohttp
+pydantic
+# https://github.com/Maillol/aiohttp-pydantic
+aiohttp_pydantic
