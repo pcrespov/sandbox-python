@@ -20,9 +20,9 @@ def book_path(tmp_path: Path) -> Path:
 
 
 def test_lazy():
-    with httpx.stream("GET", "http://www.gutenberg.org/cache/epub/98/pg98.txt", follow_redirects=True) as r:
-        book = r.iter_lines()
-        loud_book = map(str.upper, book)
-
-        f = frequencies(concat(loud_book))
+    with httpx.stream(
+        "GET", "http://www.gutenberg.org/cache/epub/98/pg98.txt", follow_redirects=True
+    ) as r:
+        f = frequencies(concat(map(str.upper, r.iter_lines())))
+        # plot results
         print(json.dumps(f, indent=2, sort_keys=True))
