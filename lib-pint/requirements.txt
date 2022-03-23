@@ -1,3 +1,3 @@
 pint
 pytest
-ipythonur
+ipython
