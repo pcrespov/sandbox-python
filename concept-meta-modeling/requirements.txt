@@ -1,4 +1,6 @@
+httpx
+numpy
+pandas
 pydantic
-pyyaml
-
 pytest
+pyyaml
