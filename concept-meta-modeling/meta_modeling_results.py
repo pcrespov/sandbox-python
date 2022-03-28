@@ -137,9 +137,10 @@ if __name__ == "__main__":
 
         for iteration in results_page.data:
             # projects/*/checkpoints/*/iterations/*
-            index.append(
-                f"/p/{project_id}/c/{checkpoint.id}/i/{iteration.iteration_index}"
-            )
+            # index.append(
+            #    f"/p/{project_id}/c/{checkpoint.id}/i/{iteration.iteration_index}"
+            # )
+            index.append(iteration.interation_index)
 
             data["progress"].append(
                 sum(iteration.results.progress.values())
@@ -154,6 +155,8 @@ if __name__ == "__main__":
         print(df.describe())
         print(df.sort_values(by="f2(X)"))
 
-        plt.figure()
-        df[1:].plot()
-        plt.show()
+        # plt.figure()
+        # df[1:].plot()
+        # plt.show()
+
+        df.to_csv("projects_{project_id}_checkpoint_{checkpoint.id}.csv")
