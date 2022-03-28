@@ -1,19 +1,20 @@
 import getpass
-import matplotlib.pyplot as plt
+import itertools
 import os
 from collections import defaultdict
 from datetime import datetime
-from typing import Any, Dict, Generic, List, Optional, TypeVar
+from typing import Any, Dict, Generic, Iterator, List, Optional, Type, TypeVar
 from uuid import UUID
 
 import httpx
+import matplotlib.pyplot as plt
 import pandas as pd
-from pydantic import AnyUrl, BaseModel, Field, NonNegativeInt, conint
+from httpx import HTTPStatusError
+from pydantic import AnyHttpUrl, AnyUrl, BaseModel, Field, NonNegativeInt, conint
 from pydantic.generics import GenericModel
 
 ItemT = TypeVar("ItemT")
 DataT = TypeVar("DataT")
-plt.close("all")
 
 
 class Meta(BaseModel):
@@ -23,9 +24,18 @@ class Meta(BaseModel):
     count: NonNegativeInt
 
 
+class PageLinks(BaseModel):
+    self: AnyHttpUrl
+    first: AnyHttpUrl
+    prev: Optional[AnyHttpUrl]
+    next: Optional[AnyHttpUrl]
+    last: AnyHttpUrl
+
+
 class Page(GenericModel, Generic[ItemT]):
-    _meta: Meta
+    meta: Meta = Field(..., alias="_meta")
     data: List[ItemT]
+    links: PageLinks = Field(..., alias="_links")
 
 
 class Envelope(GenericModel, Generic[DataT]):
@@ -84,79 +94,125 @@ class ProjectIterationResultItem(ProjectIteration):
     results: ExtractedResults
 
 
+def ping(client):
+    r = client.get("/")
+    print(r.status_code, r.json())
+
+
+def discover_user_and_pass():
+    user = os.environ.get("USER_EMAIL", getpass.getuser() + "@itis.swiss")
+    password = os.environ.get("USER_PASS", getpass.getpass())
+    return user, password
+
+
+def login(client, user, password):
+
+    r = client.post(
+        "/auth/login",
+        json={
+            "email": user,
+            "password": password,
+        },
+    )
+    try:
+        r.raise_for_status()
+    except HTTPStatusError as err:
+        raise RuntimeError(err.response["error"])
+
+    return r.json()
+
+
+def get_profile(client):
+    r = client.get("/me")
+    assert r.status_code == 200
+    return r.json()["data"]
+
+
+def iter_page_items(
+    client: httpx.Client, url_path: str, item_cls: Type[ItemT]
+) -> Iterator[ItemT]:
+    r = client.get(url_path)
+    r.raise_for_status()
+
+    page = Page[item_cls].parse_raw(r.text)
+    for item in page.data:
+        yield item
+
+    while page.links.self != page.links.last:
+        next_url = page.links.next.path.replace(client.base_url.path, "")
+
+        r = client.get(next_url)
+        r.raise_for_status()
+
+        page = Page[item_cls].parse_raw(r.text)
+        for item in page.data:
+            yield item
+
+
 # ------------------------------------------------------------------------------------
 
 if __name__ == "__main__":
 
-    password = os.environ.get("USER_PASS")
-    user = getpass.getuser() + "@itis.swiss"
-
-    if password is None:
-        password = getpass.getpass()
-        os.environ.setdefault("USER_PASS", password)
-
-    print(user)
-
     with httpx.Client(base_url="http://127.0.0.1.nip.io:9081/v0") as client:
-        r = client.get("/")
-        print(r.status_code, r.json())
+        ping(client)
 
-        r = client.post(
-            "/auth/login",
-            json={
-                "email": user,
-                "password": password,
-            },
+        login(client, *discover_user_and_pass())
+        assert get_profile(client)
+
+        repos: List[ProjectRepo] = list(
+            iter_page_items(client, f"/repos/projects", ProjectRepo)
         )
-        print(r.status_code, r.json())
 
-        r = client.get("/me")
-        assert r.status_code == 200
+        project_id = repos[0].project_uuid
 
-        r = client.get("/repos/projects")
-        repos = Page[ProjectRepo].parse_obj(r.json())
-        project_id = repos.data[0].project_uuid
-
-        r = client.get(f"/repos/projects/{project_id}/checkpoints")
-        checkpoints = Page[CheckPoint].parse_raw(r.text)
+        for checkpoint in iter_page_items(
+            client,
+            f"/repos/projects/{project_id}/checkpoints",
+            CheckPoint,
+        ):
+            print(checkpoint.json(exclude_unset=True, indent=1))
 
         r = client.get(f"/repos/projects/{project_id}/checkpoints/HEAD")
-        checkpoint = Envelope[CheckPoint].parse_obj(r.json()).data
+        head = Envelope[CheckPoint].parse_obj(r.json()).data
 
-        r = client.get(f"/projects/{project_id}/checkpoint/{checkpoint.id}/iterations")
-        iterations = Page[ProjectIteration].parse_obj(r.json()).data
+        for project_iteration in iter_page_items(
+            client,
+            f"/projects/{project_id}/checkpoint/{head.id}/iterations",
+            ProjectIteration,
+        ):
+            print(project_iteration.json(exclude_unset=True, indent=1))
 
-        r = client.get(
-            f"/projects/{project_id}/checkpoint/{checkpoint.id}/iterations/-/results"
-        )
-        results_page = Page[ProjectIterationResultItem].parse_obj(r.json())
-
+        #  results
         data = defaultdict(list)
         columns = []
         index = []
 
-        for iteration in results_page.data:
+        for row in iter_page_items(
+            client,
+            f"/projects/{project_id}/checkpoint/{head.id}/iterations/-/results",
+            ProjectIterationResultItem,
+        ):
             # projects/*/checkpoints/*/iterations/*
             # index.append(
             #    f"/p/{project_id}/c/{checkpoint.id}/i/{iteration.iteration_index}"
             # )
-            index.append(iteration.interation_index)
+            index.append(row.iteration_index)
 
             data["progress"].append(
-                sum(iteration.results.progress.values())
-                / len(iteration.results.progress)
+                sum(row.results.progress.values()) / len(row.results.progress)
             )
 
-            for node_id, label in iteration.results.labels.items():
-                data[label].extend(list(iteration.results.values[node_id].values()))
+            for node_id, label in row.results.labels.items():
+                data[label].extend(list(row.results.values[node_id].values()))
 
         df = pd.DataFrame(data, index=pd.Series(index))
         print(df.head())
         print(df.describe())
         print(df.sort_values(by="f2(X)"))
 
+        # plt.close("all")
         # plt.figure()
         # df[1:].plot()
         # plt.show()
 
-        df.to_csv("projects_{project_id}_checkpoint_{checkpoint.id}.csv")
+        df.to_csv(f"projects_{project_id}_checkpoint_{checkpoint.id}.csv")
