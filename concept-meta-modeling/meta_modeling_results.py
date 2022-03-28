@@ -83,6 +83,8 @@ class ProjectIterationResultItem(ProjectIteration):
     results: ExtractedResults
 
 
+# ------------------------------------------------------------------------------------
+
 if __name__ == "__main__":
 
     password = os.environ.get("USER_PASS")
@@ -129,13 +131,26 @@ if __name__ == "__main__":
         results_page = Page[ProjectIterationResultItem].parse_obj(r.json())
 
         data = defaultdict(list)
-        for iteration in results_page.data:
+        columns = []
+        index = []
 
-            for node_id, progress in iteration.results.progress.items():
-                data[node_id].append(progress)
+        for iteration in results_page.data:
+            # projects/*/checkpoints/*/iterations/*
+            index.append(
+                f"/p/{project_id}/c/{checkpoint.id}/i/{iteration.iteration_index}"
+            )
+
+            data["progress"].append(
+                sum(iteration.results.progress.values())
+                / len(iteration.results.progress)
+            )
 
             for node_id, label in iteration.results.labels.items():
-                data[node_id].extend(list(iteration.results.values[node_id].values()))
+                data[label].extend(list(iteration.results.values[node_id].values()))
 
-        df = pd.DataFrame(data)
-        print(df)
+        df = pd.DataFrame(data, index=pd.Series(index))
+        print(df.head())
+        print(df.describe())
+        print(df.sort_values(by="f2(X)"))
+
+
