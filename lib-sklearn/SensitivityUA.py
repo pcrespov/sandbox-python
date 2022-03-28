@@ -55,7 +55,7 @@ def sensitivity(func, paramrefs, paramdiff, diff_or_fact, lin_or_power):
         sensitivities.append(model.coef_[0])
         linearities.append(model.score(x, y))
 
-    return [refval, sensitivities, linearities]
+    return refval, sensitivities, linearities
 
 
 # In[3]:
@@ -64,7 +64,7 @@ def sensitivity(func, paramrefs, paramdiff, diff_or_fact, lin_or_power):
 def uncertainty(
     func, paramrefs, paramuncerts, paramuncerttypes, diff_or_fact, lin_or_power
 ):
-    [refval, sensitivities, linearities] = sensitivity(
+    refval, sensitivities, linearities = sensitivity(
         func, paramrefs, paramuncerts, diff_or_fact, lin_or_power
     )
     uncerts = []
@@ -74,6 +74,7 @@ def uncertainty(
         len(paramrefs) != len(paramuncerttypes)
     ):
         return [refval, uncerts, totaluncert, totaluncertdB, sensitivities, linearities]
+
     for i in range(len(paramrefs)):
         if lin_or_power:
             if diff_or_fact:
@@ -89,8 +90,10 @@ def uncertainty(
                 )  # not symmetric
             else:
                 uncerts.append(sensitivities[i] * np.log(paramuncerts[i]))
+
         if paramuncerttypes[i] == "R":
             uncerts[i] /= math.sqrt(3)
+
         totaluncert += uncerts[i] ** 2
     totaluncert = math.sqrt(totaluncert)
     totaluncertdB = totaluncert
@@ -98,7 +101,7 @@ def uncertainty(
         totaluncertdB = np.log(totaluncert / refval + 1)  # not symmetric
     else:
         totaluncert = (np.exp(totaluncertdB) - 1) * refval  # not symmetric
-    return [refval, uncerts, totaluncert, totaluncertdB, sensitivities, linearities]
+    return refval, uncerts, totaluncert, totaluncertdB, sensitivities, linearities
 
 
 # k=2
