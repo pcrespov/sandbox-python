@@ -1,4 +1,5 @@
 httpx
+matplotlib
 numpy
 pandas
 pydantic

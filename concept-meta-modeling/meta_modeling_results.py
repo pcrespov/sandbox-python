@@ -1,5 +1,5 @@
 import getpass
-import json
+import matplotlib.pyplot as plt
 import os
 from collections import defaultdict
 from datetime import datetime
@@ -13,6 +13,7 @@ from pydantic.generics import GenericModel
 
 ItemT = TypeVar("ItemT")
 DataT = TypeVar("DataT")
+plt.close("all")
 
 
 class Meta(BaseModel):
@@ -153,4 +154,6 @@ if __name__ == "__main__":
         print(df.describe())
         print(df.sort_values(by="f2(X)"))
 
-
+        plt.figure()
+        df[1:].plot()
+        plt.show()
