@@ -64,16 +64,20 @@ def sensitivity(func, paramrefs, paramdiff, diff_or_fact, lin_or_power):
 def uncertainty(
     func, paramrefs, paramuncerts, paramuncerttypes, diff_or_fact, lin_or_power
 ):
+    # this is run in osparc
     refval, sensitivities, linearities = sensitivity(
         func, paramrefs, paramuncerts, diff_or_fact, lin_or_power
     )
+
     uncerts = []
+
     totaluncert = 0.0
     totaluncertdB = 0.0
+
     if (len(paramrefs) != len(paramuncerts)) or (
         len(paramrefs) != len(paramuncerttypes)
     ):
-        return [refval, uncerts, totaluncert, totaluncertdB, sensitivities, linearities]
+        return refval, uncerts, totaluncert, totaluncertdB, sensitivities, linearities
 
     for i in range(len(paramrefs)):
         if lin_or_power:
