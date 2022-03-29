@@ -128,18 +128,21 @@ def get_profile(client):
     return r.json()["data"]
 
 
-def iter_page_items(
+def iter_items(
     client: httpx.Client, url_path: str, item_cls: Type[ItemT]
 ) -> Iterator[ItemT]:
-    r = client.get(url_path)
-    r.raise_for_status()
+    """iterates items returned by a List std-method
 
-    page = Page[item_cls].parse_raw(r.text)
-    for item in page.data:
-        yield item
+    SEE https://google.aip.dev/132
+    """
 
-    while page.links.self != page.links.last:
-        next_url = page.links.next.path.replace(client.base_url.path, "")
+    def _relative_url(url_path: str):
+        return url_path.replace(client.base_url.path, "")
+
+    next_url = url_path
+    last_url = None
+
+    while next_url != last_url:
 
         r = client.get(next_url)
         r.raise_for_status()
@@ -147,6 +150,9 @@ def iter_page_items(
         page = Page[item_cls].parse_raw(r.text)
         for item in page.data:
             yield item
+
+        next_url = _relative_url(page.links.next.path)
+        last_url = _relative_url(page.links.last.path)
 
 
 # ------------------------------------------------------------------------------------
@@ -160,12 +166,12 @@ if __name__ == "__main__":
         assert get_profile(client)
 
         repos: List[ProjectRepo] = list(
-            iter_page_items(client, f"/repos/projects", ProjectRepo)
+            iter_items(client, f"/repos/projects", ProjectRepo)
         )
 
         project_id = repos[0].project_uuid
 
-        for checkpoint in iter_page_items(
+        for checkpoint in iter_items(
             client,
             f"/repos/projects/{project_id}/checkpoints",
             CheckPoint,
@@ -175,7 +181,7 @@ if __name__ == "__main__":
         r = client.get(f"/repos/projects/{project_id}/checkpoints/HEAD")
         head = Envelope[CheckPoint].parse_obj(r.json()).data
 
-        for project_iteration in iter_page_items(
+        for project_iteration in iter_items(
             client,
             f"/projects/{project_id}/checkpoint/{head.id}/iterations",
             ProjectIteration,
@@ -187,7 +193,7 @@ if __name__ == "__main__":
         columns = []
         index = []
 
-        for row in iter_page_items(
+        for row in iter_items(
             client,
             f"/projects/{project_id}/checkpoint/{head.id}/iterations/-/results",
             ProjectIterationResultItem,
