@@ -1,0 +1,8 @@
+[section]
+option=value
+
+
+[metadata]
+name=
+description=
+dynamic=[version]
