@@ -6,11 +6,12 @@ from typing import Any, Dict, Generic, Iterator, List, Optional, Type, TypeVar
 from uuid import UUID
 
 import httpx
-import matplotlib.pyplot as plt
 import pandas as pd
 from httpx import HTTPStatusError
 from pydantic import AnyHttpUrl, AnyUrl, BaseModel, Field, NonNegativeInt, conint
 from pydantic.generics import GenericModel
+
+# pip install pydantic, httpx, pandas, tabulate
 
 ItemT = TypeVar("ItemT")
 DataT = TypeVar("DataT")
@@ -116,7 +117,8 @@ def login(client, user, password):
     try:
         r.raise_for_status()
     except HTTPStatusError as err:
-        raise RuntimeError(err.response["error"])
+        assert err.response.is_error  # nosec
+        raise RuntimeError(err.response.json.get("error", err.response.text))
 
     return r.json()
 
@@ -181,7 +183,7 @@ if __name__ == "__main__":
 
         r = client.get(f"/repos/projects/{project_id}/checkpoints/HEAD")
         head = Envelope[CheckPoint].parse_obj(r.json()).data
-        assert head # nosec
+        assert head  # nosec
 
         for project_iteration in iter_items(
             client,
@@ -212,10 +214,14 @@ if __name__ == "__main__":
 
             for node_id, label in row.results.labels.items():
                 for port_name, value in row.results.values[node_id].items():
-                    data[f"{label}/{port_name}"].append(value)
+                    data[f"{label}[{port_name}]"].append(value)
 
+
+        # Le'ts transform it into pandas --------
         df = pd.DataFrame(data, index=pd.Series(index))
+        print(end="\n" * 2)
         print(df.head())
+        print(end="\n" * 2)
         print(df.describe())
         # print(df.sort_values(by="f2(X)"))
 
@@ -224,4 +230,5 @@ if __name__ == "__main__":
         # df[1:].plot()
         # plt.show()
 
-        df.to_csv(f"projects_{project_id}_checkpoint_{checkpoint.id}.csv")
+        df.to_csv(f"projects_{project_id}_checkpoint_{head.id}.csv")
+        df.to_markdown(f"projects_{project_id}_checkpoint_{head.id}.md")
