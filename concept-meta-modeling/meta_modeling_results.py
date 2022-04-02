@@ -1,5 +1,4 @@
 import getpass
-import itertools
 import os
 from collections import defaultdict
 from datetime import datetime
@@ -136,13 +135,15 @@ def iter_items(
     SEE https://google.aip.dev/132
     """
 
-    def _relative_url(url_path: str):
-        return url_path.replace(client.base_url.path, "")
+    def _relative_url_path(page_link: Optional[AnyHttpUrl]) -> Optional[str]:
+        if page_link:
+            return f"{page_link.path}".replace(client.base_url.path, "")
+        return None
 
     next_url = url_path
     last_url = None
 
-    while next_url != last_url:
+    while next_url and next_url != last_url:
 
         r = client.get(next_url)
         r.raise_for_status()
@@ -151,8 +152,8 @@ def iter_items(
         for item in page.data:
             yield item
 
-        next_url = _relative_url(page.links.next.path)
-        last_url = _relative_url(page.links.last.path)
+        next_url = _relative_url_path(page.links.next)
+        last_url = _relative_url_path(page.links.last)
 
 
 # ------------------------------------------------------------------------------------
@@ -180,6 +181,7 @@ if __name__ == "__main__":
 
         r = client.get(f"/repos/projects/{project_id}/checkpoints/HEAD")
         head = Envelope[CheckPoint].parse_obj(r.json()).data
+        assert head # nosec
 
         for project_iteration in iter_items(
             client,
@@ -209,12 +211,13 @@ if __name__ == "__main__":
             )
 
             for node_id, label in row.results.labels.items():
-                data[label].extend(list(row.results.values[node_id].values()))
+                for port_name, value in row.results.values[node_id].items():
+                    data[f"{label}/{port_name}"].append(value)
 
         df = pd.DataFrame(data, index=pd.Series(index))
         print(df.head())
         print(df.describe())
-        print(df.sort_values(by="f2(X)"))
+        # print(df.sort_values(by="f2(X)"))
 
         # plt.close("all")
         # plt.figure()
