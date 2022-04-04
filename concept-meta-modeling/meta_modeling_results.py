@@ -168,67 +168,57 @@ if __name__ == "__main__":
         login(client, *discover_user_and_pass())
         assert get_profile(client)
 
-        repos: List[ProjectRepo] = list(
-            iter_items(client, f"/repos/projects", ProjectRepo)
-        )
+        for repo in iter_items(client, f"/repos/projects", ProjectRepo):
 
-        project_id = repos[0].project_uuid
+            project_id = repo.project_uuid
 
-        for checkpoint in iter_items(
-            client,
-            f"/repos/projects/{project_id}/checkpoints",
-            CheckPoint,
-        ):
-            print(checkpoint.json(exclude_unset=True, indent=1))
+            r = client.get(f"/repos/projects/{project_id}/checkpoints/HEAD")
+            head = Envelope[CheckPoint].parse_obj(r.json()).data
+            assert head  # nosec
 
-        r = client.get(f"/repos/projects/{project_id}/checkpoints/HEAD")
-        head = Envelope[CheckPoint].parse_obj(r.json()).data
-        assert head  # nosec
+            for project_iteration in iter_items(
+                client,
+                f"/projects/{project_id}/checkpoint/{head.id}/iterations",
+                ProjectIteration,
+            ):
+                print(project_iteration.json(exclude_unset=True, indent=1))
 
-        for project_iteration in iter_items(
-            client,
-            f"/projects/{project_id}/checkpoint/{head.id}/iterations",
-            ProjectIteration,
-        ):
-            print(project_iteration.json(exclude_unset=True, indent=1))
+            #  results
+            data = defaultdict(list)
+            columns = []
+            index = []
 
-        #  results
-        data = defaultdict(list)
-        columns = []
-        index = []
+            for row in iter_items(
+                client,
+                f"/projects/{project_id}/checkpoint/{head.id}/iterations/-/results",
+                ProjectIterationResultItem,
+            ):
+                # projects/*/checkpoints/*/iterations/*
+                # index.append(
+                #    f"/p/{project_id}/c/{checkpoint.id}/i/{iteration.iteration_index}"
+                # )
+                index.append(row.iteration_index)
 
-        for row in iter_items(
-            client,
-            f"/projects/{project_id}/checkpoint/{head.id}/iterations/-/results",
-            ProjectIterationResultItem,
-        ):
-            # projects/*/checkpoints/*/iterations/*
-            # index.append(
-            #    f"/p/{project_id}/c/{checkpoint.id}/i/{iteration.iteration_index}"
-            # )
-            index.append(row.iteration_index)
+                data["progress"].append(
+                    sum(row.results.progress.values()) / len(row.results.progress)
+                )
 
-            data["progress"].append(
-                sum(row.results.progress.values()) / len(row.results.progress)
-            )
+                for node_id, label in row.results.labels.items():
+                    for port_name, value in row.results.values[node_id].items():
+                        data[f"{label}[{port_name}]"].append(value)
 
-            for node_id, label in row.results.labels.items():
-                for port_name, value in row.results.values[node_id].items():
-                    data[f"{label}[{port_name}]"].append(value)
+            # Le'ts transform it into pandas --------
+            df = pd.DataFrame(data, index=pd.Series(index))
+            print(end="\n" * 2)
+            print(df.head())
+            print(end="\n" * 2)
+            print(df.describe())
+            # print(df.sort_values(by="f2(X)"))
 
+            # plt.close("all")
+            # plt.figure()
+            # df[1:].plot()
+            # plt.show()
 
-        # Le'ts transform it into pandas --------
-        df = pd.DataFrame(data, index=pd.Series(index))
-        print(end="\n" * 2)
-        print(df.head())
-        print(end="\n" * 2)
-        print(df.describe())
-        # print(df.sort_values(by="f2(X)"))
-
-        # plt.close("all")
-        # plt.figure()
-        # df[1:].plot()
-        # plt.show()
-
-        df.to_csv(f"projects_{project_id}_checkpoint_{head.id}.csv")
-        df.to_markdown(f"projects_{project_id}_checkpoint_{head.id}.md")
+            df.to_csv(f"projects_{project_id}_checkpoint_{head.id}.csv")
+            df.to_markdown(f"projects_{project_id}_checkpoint_{head.id}.md")
