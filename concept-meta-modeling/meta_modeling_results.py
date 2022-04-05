@@ -193,10 +193,9 @@ if __name__ == "__main__":
                 f"/projects/{project_id}/checkpoint/{head.id}/iterations/-/results",
                 ProjectIterationResultItem,
             ):
-                # projects/*/checkpoints/*/iterations/*
-                # index.append(
-                #    f"/p/{project_id}/c/{checkpoint.id}/i/{iteration.iteration_index}"
-                # )
+                print(
+                    f"/projects/{project_id}/checkpoints/{head.id}/iterations/{row.iteration_index}"
+                )
                 index.append(row.iteration_index)
 
                 data["progress"].append(

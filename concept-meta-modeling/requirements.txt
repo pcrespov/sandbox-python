@@ -5,3 +5,4 @@ pandas
 pydantic
 pytest
 pyyaml
+tabulate
