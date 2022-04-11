@@ -6,9 +6,9 @@ import pytest
 pytestmark = pytest.mark.asyncio
 
 
-async def foo():
+async def succeeds():
     await asyncio.sleep(1)
-    return "Foo!"
+    return "returned-value"
 
 
 async def fails():
@@ -16,6 +16,9 @@ async def fails():
     await asyncio.sleep(1)
     raise RuntimeError("Failed")
 
+async def fails_fast():
+    print("failing ...")
+    raise RuntimeError("Failed")
 
 def on_done_log_status(fut: asyncio.Future):
     assert fut.done()
@@ -36,6 +39,26 @@ def on_done_log_status(fut: asyncio.Future):
     except asyncio.CancelledError as err:
         print("done with cancellation", err)
         raise # NOTICE that raising or not raising here will not prevent the other on_done callbacks to ru n!!!!
+
+# TESTS -------------
+
+async def test_it():
+    tasks = [
+        asyncio.create_task(succeeds(), name="1"),
+        asyncio.create_task(fails(), name="2"),
+        asyncio.create_task(fails_fast(), name="3")
+    ]
+
+    tasks_returns = await asyncio.gather(*tasks, return_exceptions=True)
+    print(tasks_returns)
+    assert any(isinstance(r, RuntimeError) for r in tasks_returns)
+
+
+    # let's see what happens if I rerun tasks that are done
+    assert all(t.done() for t in tasks)
+    rerun_tasks_returns = await asyncio.gather(*tasks, return_exceptions=True)
+
+    assert tasks_returns == rerun_tasks_returns
 
 
 async def test_failing_task():
@@ -74,7 +97,7 @@ async def test_scheduled_background_task():
         assert future is task
         print(f"got the result and is {future.result()}")
 
-    task = asyncio.create_task(foo())
+    task = asyncio.create_task(succeeds())
     task.add_done_callback(_on_done_print_result)
     print(task)
 
