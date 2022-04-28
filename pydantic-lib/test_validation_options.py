@@ -1,3 +1,4 @@
+
 from datetime import datetime
 from typing import Optional
 
@@ -53,6 +54,7 @@ def test_validate_assignments():
         id: int
         name: str = "John Doe"
         signup_ts: datetime = None
+
 
     user = User(id="42", signup_ts="2032-06-21T12:00")
 
