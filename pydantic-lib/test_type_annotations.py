@@ -14,7 +14,7 @@ class A(BaseModel):
     z: Mapping[str, Any]
 
 
-def test_types():
+def test_types_annotations():
 
     # this is a way to define a dict as a structured dataset
     c = MyDict(a=1, b=2)
@@ -44,3 +44,6 @@ def test_types():
     # Q: So, what difference it makes to define dict, Dict, Mapping.
     #   Dict is included in Mapping, so it makes it more general. OK, but
     #   what about dict vs Dict?? What is the difference
+
+    # A:  @sanderegg: there is not differnce
+    #  SEE https://docs.python.org/3/whatsnew/3.9.html#type-hinting-generics-in-standard-collections
