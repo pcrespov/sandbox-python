@@ -9,7 +9,7 @@ class MySettings(BaseSettings):
     ]
 
     class Config:
-        env_file = "pydantic-lib/.env-settings"  # <<<<
+        env_file = "pydantic-lib/.env-settings"  # <<<< Check content of this file
         env_file_encoding = "utf-8"
 
     @validator("OTHER_LIST", pre=True, always=True)
