@@ -136,3 +136,51 @@ def test_fields_declarations():
         explicit_default=Ellipsis,
         defaults=None,
     )
+
+
+def test_nullable_and_defaults():
+    # The difference between these two is minimal!
+    #
+    # VALUE_NULLABLE_OPTIONAL: Optional[int]
+    # VALUE_NULLABLE_DEFAULT_NULL: Optional[int] = None
+    #
+
+    assert_field_specs(
+        MyModel,
+        "VALUE_NULLABLE_DEFAULT_NULL",
+        is_required=False,
+        is_nullable=True,
+        explicit_default=None,  # <- difference wrt VALUE_NULLABLE_OPTIONAL
+        defaults=None,
+    )
+
+    assert_field_specs(
+        MyModel,
+        "VALUE_NULLABLE_OPTIONAL",
+        is_required=False,
+        is_nullable=True,
+        explicit_default=Undefined,  # <- difference wrt VALUE_NULLABLE_DEFAULT_NULL
+        defaults=None,
+    )
+
+    # VALUE_NULLABLE_OPTIONAL interpretation has always been confusing
+    #  to me but effectively it is equivalent to VALUE_NULLABLE_DEFAULT_NULL.
+    #  The only difference is that in one case the default is implicit and in the other explicit
+
+    # See that when we create the instance, VALUE_NULLABLE_OPTIONAL automatically defaults to None
+
+    m = MyModel(VALUE=1, VALUE_NULLABLE_REQUIRED=2, VALUE_ALSO_REQUIRED=3)
+
+    # Here explicit default is undefined (see test_field_declarations) but the
+    # instance gets automatically None
+    assert m.VALUE_NULLABLE_OPTIONAL == None
+
+    assert m == {
+        "VALUE": 1,
+        "VALUE_DEFAULT": 42,
+        "VALUE_NULLABLE_REQUIRED": 2,
+        "VALUE_NULLABLE_OPTIONAL": None,
+        "VALUE_NULLABLE_DEFAULT_VALUE": 42,
+        "VALUE_NULLABLE_DEFAULT_NULL": None,
+        "VALUE_ALSO_REQUIRED": 3,
+    }
