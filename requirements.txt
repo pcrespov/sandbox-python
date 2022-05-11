@@ -1,6 +1,6 @@
 # tools
-pylint
-pip-tools
-isort
 black
+isort
+pip-tools
 pycln
+pylint
