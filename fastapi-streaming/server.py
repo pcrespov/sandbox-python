@@ -15,35 +15,33 @@ import aiofiles
 
 app = FastAPI()
 
+
 @app.get("/")
 def hi():
     return "Hello world"
 
 
-
-async def fake_video_streamer():
+async def iter_stream():
     print("Starting streaming")
-    for i in range(10):
-        print(i)
+    for i in range(100_000):
         yield b"some fake video bytes"
-
-
-
 
 
 @app.get("/stream")
 async def stream():
-    return StreamingResponse(fake_video_streamer())
+    return StreamingResponse(iter_stream(), media_type="application/octet-stream")
+
 
 from pathlib import Path
 
 data_folder = Path(__file__).resolve().parent.parent / "ignore"
 data_folder.mkdir(exist_ok=True, parents=True)
 
+
 @app.put("/upload")
 async def upload(file: UploadFile = File(...)):
-    chunk_size = 2 ** 4
-    async with aiofiles.open( data_folder / file.filename, "wb") as fh:
+    chunk_size = 2**4
+    async with aiofiles.open(data_folder / file.filename, "wb") as fh:
         more_data = True
         while more_data:
             chunk = await file.read(chunk_size)
@@ -65,7 +63,7 @@ async def download():
     #     f.write(b"\0")
 
     print("Downloading ....")
-    FileResponse.chunk_size = 2 ** 5
+    FileResponse.chunk_size = 2**5
     return FileResponse(
         path=__file__,
         media_type=guess_type(__file__)[0],
@@ -106,11 +104,8 @@ async def redirect_to_download(request: Request):
     response_class=FileResponse,
 )
 async def redirect_to_upload(request: Request, file: UploadFile = File(...)):
-    
+
     return RedirectResponse(request.url_for("upload"))
-
-
-
 
     # attach download stream to the streamed response
     # def _build_headers() -> Dict:
@@ -129,5 +124,6 @@ async def redirect_to_upload(request: Request, file: UploadFile = File(...)):
     # )
 
     # return RedirectResponse(presigned_download_link)
+
 
 # uvicorn streaming_server:app --reload

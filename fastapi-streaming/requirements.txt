@@ -1,0 +1,7 @@
+fastapi[all]
+httpx
+pydantic
+
+
+#
+aiofiles
