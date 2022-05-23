@@ -7,7 +7,7 @@ from pydantic import AnyUrl, BaseModel, conint
 
 class StuffGet(BaseModel):
     int: conint(gt=33)
-    #link: AnyUrl
+    link: AnyUrl # thisone produces a failing case
 
 
 app = FastAPI()

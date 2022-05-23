@@ -29,7 +29,8 @@
    "StuffGet": {
     "title": "StuffGet",
     "required": [
-     "int"
+     "int",
+     "link"
     ],
     "type": "object",
     "properties": {
@@ -37,6 +38,13 @@
       "title": "Int",
       "exclusiveMinimum": 33.0,
       "type": "integer"
+     },
+     "link": {
+      "title": "Link",
+      "maxLength": 65536,
+      "minLength": 1,
+      "type": "string",
+      "format": "uri"
      }
     }
    }
