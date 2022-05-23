@@ -1,0 +1,4 @@
+pytest
+httpx
+respx
+faker
