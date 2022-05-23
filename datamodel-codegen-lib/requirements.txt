@@ -1,0 +1,4 @@
+
+datamodel-code-generator[http]
+pydantic
+fastapi

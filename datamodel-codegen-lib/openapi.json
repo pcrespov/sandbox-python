@@ -1,0 +1,45 @@
+{
+ "openapi": "3.0.2",
+ "info": {
+  "title": "FastAPI",
+  "version": "0.1.0"
+ },
+ "paths": {
+  "/stuff": {
+   "get": {
+    "summary": "Get Stuff",
+    "operationId": "get_stuff_stuff_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/StuffGet"
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ },
+ "components": {
+  "schemas": {
+   "StuffGet": {
+    "title": "StuffGet",
+    "required": [
+     "int"
+    ],
+    "type": "object",
+    "properties": {
+     "int": {
+      "title": "Int",
+      "exclusiveMinimum": 33.0,
+      "type": "integer"
+     }
+    }
+   }
+  }
+ }
+}
