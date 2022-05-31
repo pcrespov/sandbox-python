@@ -1,39 +1,44 @@
-from typing import Iterator
-
-import httpx
 import pytest
-import respx
 from faker import Faker
 from respx import MockRouter
+import respx
+import httpx
+
+
+#
+# https://lundberg.github.io/respx/guide/#mock-with-a-side-effect
+#
 
 
 @pytest.fixture
-def mocked_service_api(faker: Faker) -> Iterator[MockRouter]:
+def mocked_service_api(faker: Faker):
 
     with respx.mock(  # type: ignore
         base_url="http://service:8080/v0",
         assert_all_called=True,
         assert_all_mocked=True,
     ) as respx_mock:
-
+        # /ping
         respx_mock.get(path="/ping", name="ping")
 
-        # TODO: Not sure what are the regex keys for
-        respx_mock.get(
-            path__regex=r"/projects/(?P<project_id>\d+)/nodes/(?P<node_id>\d+)",
-            name="get_project",
-        ).respond(json={"project_id": faker.uuid4()})
+        # /echo
+        def echo(req: httpx.Request):
+            print(req.content.decode(req.headers.encoding))
+            return httpx.Response(200, content=req.content)
+
+        respx_mock.post(path="/echo").mock(side_effect=echo)
+
         yield respx_mock
 
 
-def test_path(mocked_service_api: MockRouter):
+def test_it(mocked_service_api: MockRouter):
 
     with httpx.Client(base_url="http://service:8080/v0") as client:
-
         resp = client.get("/ping")
         assert resp.status_code == 200
         assert mocked_service_api["ping"].called
 
-        resp = client.get("/projects/123/nodes/123")
+        data = {"x": 42}
+        resp = client.post("/echo", json=data)
         assert resp.status_code == 200
-        assert mocked_service_api["get_project"].called
+        assert resp.json() == data
