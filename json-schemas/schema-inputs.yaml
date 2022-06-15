@@ -1,0 +1,17 @@
+type: object
+properties:
+  parameters:
+    type: array
+    items:
+      type: number
+    required: true
+  X:
+    type: number
+    required: true
+  Y:
+    type: number
+    default: 1.0
+    required: true
+  W:
+    type: number
+    required: true

@@ -1,0 +1,13 @@
+type: object
+properties:
+  probe_1:
+    description: "Random sleep interval"
+    type: integer
+    minimum: 1
+    maximum: 9
+    x-units: "second"
+  probe_2:
+    description: "Time"
+    type: number
+    minimum: 0
+    x-units: "minute"

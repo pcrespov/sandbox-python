@@ -1,0 +1,56 @@
+type: object
+properties:
+  input:
+  output:
+    type: object
+    data:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+            required: true
+          name:
+            type: string
+            required: true
+    plots:
+      type: array
+      items:
+        type: object
+        properties:
+          xAxisTitle:
+            type: string
+          xValue:
+            type: string
+          yAxisTitle:
+            type: string
+          yValue:
+            type: string
+        required:
+          - xAxisTitle
+          - xValue
+          - yAxisTitle
+          - yValue
+  parameters:
+    type: array
+    items:
+      type: object
+      properties:
+        name:
+          type: string
+        value:
+          type: string
+      required:
+        - name
+        - value
+
+  simulation:
+    additionalProperties: false,
+    properties:
+      endingPoint:
+        type: number
+        required: true
+      pointInterval:
+        type: number
+        required: true
