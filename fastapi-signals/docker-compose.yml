@@ -1,0 +1,27 @@
+version: "3.8"
+services:
+  myapp:
+    image: "local/myapp:latest"
+    init: true
+    user: "scu"
+    build:
+      context: .
+    ports:
+      - "8000:8000"
+    # https://docs.docker.com/compose/compose-file/compose-file-v3/#healthcheck
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+    command: ["sh", "./boot.sh"]
+
+  portainer:
+    image: portainer/portainer-ce
+    init: true
+    ports:
+      - "9000:9000"
+    command: -H unix:///var/run/docker.sock
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+
+volumes:
+  portainer_data: {}
