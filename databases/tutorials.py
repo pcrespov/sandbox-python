@@ -2,6 +2,7 @@
 
 import asyncio
 import os
+import subprocess
 
 import sqlalchemy
 from dotenv import load_dotenv
@@ -71,4 +72,9 @@ async def main():
     await database.disconnect()
 
 
-asyncio.run(main())
+
+
+if __name__ == "__main__":
+    # subprocess.run(["docker-compose", "up"])
+    asyncio.run(main())
+    subprocess.run(["docker-compose", "down"])
