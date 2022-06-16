@@ -1,0 +1,7 @@
+# https://github.com/encode/databases
+# https://www.encode.io/databases/
+databases[asyncpg]
+python-dotenv
+
+# just to init
+sqlalchemy[postgresql_psycopg2binary]
