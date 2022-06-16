@@ -27,4 +27,7 @@ init run an init process (PID 1) inside the container that forwards signals and 
  
  1. How to gracefully stop FastAPI app: https://github.com/tiangolo/fastapi/issues/2928
  2. Choosing an init process for multi-process containers: https://ahmet.im/blog/minimal-init-process-for-containers/
- 3. 
+ 3. How To Use Signal Driven Programming In Applications: https://medium.com/fintechexplained/advanced-python-how-to-use-signal-driven-programming-in-applications-84fcb722a369
+ 4. signal — Set handlers for asynchronous events: https://docs.python.org/3/library/signal.html (see https://pythonhosted.org/blinker/)
+ 5. Understanding Docker Container Exit Codes: https://betterprogramming.pub/understanding-docker-container-exit-codes-5ee79a1d58f6
+ 6. 
