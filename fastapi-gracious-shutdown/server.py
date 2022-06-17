@@ -4,19 +4,7 @@
 from functools import wraps
 
 from fastapi import Depends, FastAPI, HTTPException, Request, status
-
-
-def print_start_and_end(func):
-    @wraps(func)
-    async def wrapper(*args, **kwargs):
-        print(f"Starting {func.__name__:r} ...")
-        try:
-            res = await func(*args, **kwargs)
-        finally:
-            print(f"Completed {func.__name__:r}")
-        return res
-
-    return wrapper
+from server_utils import print_start_and_end
 
 
 def get_app(request: Request) -> FastAPI:
@@ -29,7 +17,7 @@ app = FastAPI()
 @app.on_event("startup")
 @print_start_and_end
 async def startup_event():
-    app.state.is_infected = False
+    app.state.is_healthy = False
 
 
 @app.on_event("shutdown")
@@ -41,7 +29,7 @@ async def shutdown_event():
 # routes ----------------------------------------
 @app.get("/")
 def get_healthcheck(request: Request):
-    if request.app.state.is_infected:
+    if not request.app.state.is_healthy:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="ko"
         )
@@ -60,5 +48,5 @@ def raise_unhandle_exception():
 
 
 @app.post("/state")
-def set_state(is_infected: bool, app: Depends(get_app)):
-    app.state.is_infected = is_infected
+def set_state(is_healthy: bool, app: Depends(get_app)):
+    app.state.is_healthy = is_healthy
