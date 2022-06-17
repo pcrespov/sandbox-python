@@ -3,7 +3,7 @@
 #
 from functools import wraps
 
-from fastapi import FastAPI, HTTPException, Request, status
+from fastapi import Depends, FastAPI, HTTPException, Request, status
 
 
 def print_start_and_end(func):
@@ -19,9 +19,26 @@ def print_start_and_end(func):
     return wrapper
 
 
+def get_app(request: Request) -> FastAPI:
+    return request.app
+
+
 app = FastAPI()
 
+# events ---------------------------------------
+@app.on_event("startup")
+@print_start_and_end
+async def startup_event():
+    app.state.is_infected = False
 
+
+@app.on_event("shutdown")
+@print_start_and_end
+async def shutdown_event():
+    ...
+
+
+# routes ----------------------------------------
 @app.get("/")
 def get_healthcheck(request: Request):
     if request.app.state.is_infected:
@@ -42,23 +59,6 @@ def raise_unhandle_exception():
     raise RuntimeError("failed")
 
 
-@app.post("/infect")
-def infect(request: Request):
-    request.app.state.is_infected = True
-
-
-@app.post("/cure")
-def cure(request: Request):
-    request.app.state.is_infected = False
-
-
-@app.on_event("startup")
-@print_start_and_end
-async def startup_event():
-    app.state.is_infected = False
-
-
-@app.on_event("shutdown")
-@print_start_and_end
-async def shutdown_event():
-    ...
+@app.post("/state")
+def set_state(is_infected: bool, app: Depends(get_app)):
+    app.state.is_infected = is_infected
