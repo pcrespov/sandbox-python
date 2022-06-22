@@ -1,3 +1,7 @@
 requests
 pytest
 pytest-asyncio
+
+
+httpx
+async_timeout
