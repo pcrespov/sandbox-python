@@ -1,6 +1,5 @@
 # tools
 black
 isort
-pip-tools
-pycln
 pylint
+pytest
