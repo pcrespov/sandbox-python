@@ -23,6 +23,7 @@
                 "--setup-show",
                 "-sx",
                 "-vv",
+                "--asyncio-mode=auto",
                 "${file}"
             ],
             "cwd": "${workspaceFolder}",
