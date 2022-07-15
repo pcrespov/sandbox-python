@@ -74,7 +74,7 @@ Ns = (10, 100, 1_000, 10_000)
 @pytest.mark.parametrize("N", Ns)
 async def test_aiofiles(N):
     results = await asyncio.gather(
-        *(aio_sample(n) for n in range(N)), return_exceptions=True
+        *[aio_sample(n) for n in range(N)], return_exceptions=True
     )
     # assert not any(isinstance(r, Exception) for r in results)
     # assert len(set(results)) == N
@@ -124,7 +124,7 @@ async def test_sync_files(N):
 # 0.02s call     test_tempfile.py::test_sync_files[10]
 
 
-# commenting asserts
+# commenting asserts (macbook pro)
 # 8.01s call     test_tempfile.py::test_aiofiles[10000]
 # 6.16s call     test_tempfile.py::test_aiofiles2[10000]
 # 6.03s call     test_tempfile.py::test_sync_files[10000]
@@ -138,3 +138,18 @@ async def test_sync_files(N):
 # 0.02s call     test_tempfile.py::test_aiofiles[10]
 # 0.01s call     test_tempfile.py::test_sync_files[10]
 # 0.01s setup    test_tempfile.py::test_sync_files[10]
+
+
+# same as above (ubuntu)
+# 15.85s call     test_tempfile.py::test_aiofiles[10000]
+# 10.81s call     test_tempfile.py::test_aiofiles2[10000]
+# 2.01s call     test_tempfile.py::test_sync_files[10000]
+# 1.61s call     test_tempfile.py::test_aiofiles[1000]
+# 1.01s call     test_tempfile.py::test_aiofiles2[1000]
+# 0.24s call     test_tempfile.py::test_sync_files[1000]
+# 0.20s call     test_tempfile.py::test_aiofiles2[100]
+# 0.14s call     test_tempfile.py::test_aiofiles[100]
+# 0.12s call     test_tempfile.py::test_aiofiles2[10]
+# 0.03s call     test_tempfile.py::test_sync_files[100]
+# 0.01s call     test_tempfile.py::test_aiofiles[10]
+# 0.01s call     test_tempfile.py::test_sync_files[10]
