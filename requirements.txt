@@ -3,5 +3,6 @@ pylint
 pip-tools
 isort
 black
+mypy
 
 # ipykernel
