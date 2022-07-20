@@ -3,6 +3,11 @@
 #
 
 import logging
+import time
+from contextlib import contextmanager
+from typing import Any
+
+import pytest
 
 # Normal usage of logging.basicConfig:
 #
@@ -13,6 +18,39 @@ import logging
 assert logging.root == logging.getLogger()
 assert not logging.root.handlers
 # logging.basicConfig(level=logging.DEBUG)
+
+
+@contextmanager
+def log_context(logger: logging.Logger, level: int, msg: str, *args, **kwargs):
+    # NOTE: keeps same signature as https://docs.python.org/3/library/logging.html#logging.Logger.log
+    logger.log(level, "Starting " + msg, *args, **kwargs)
+    yield
+    logger.log(level, "Completed " + msg, *args, **kwargs)
+
+
+def test_log_context():
+    user_id = 42
+    value = 3.14
+
+    logger = logging.getLogger("test-log-context-logger")
+    logger.setLevel(logging.INFO)
+
+    extras: dict[str, Any] = {"user_id": user_id}
+    with log_context(
+        logger, logging.INFO, " %s with %s ", f"{user_id=}", f"{value=}", extras=extras
+    ):
+        for n in range(3):
+            time.sleep(0.5)
+            logger.info("Going so far good %d", n)
+
+    with log_context(
+        logger, logging.INFO, " %s with %s ", f"{user_id=}", f"{value=}", extras=extras
+    ):
+        for n in range(3):
+            time.sleep(0.5)
+            logger.info("Going so far good %d", n)
+        logger.warning("Something went wrong, but we can continue")
+        extras["error_code"] = "OEC:12345678"
 
 
 def logit(log):
@@ -28,7 +66,8 @@ def logit(log):
     log.debug("BTW")
 
 
-def main():
+@pytest.mark.skip(reason="DEV")
+def test_logging_lib():
 
     # logging.basicConfig(level=logging.DEBUG)
 
@@ -50,6 +89,3 @@ def main():
     logit(logging.getLogger("A"))
     logit(logging.getLogger("A.B"))
     logit(logging.getLogger("A.C"))
-
-
-main()
