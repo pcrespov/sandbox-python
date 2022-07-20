@@ -9,16 +9,6 @@ from typing import Any
 
 import pytest
 
-# Normal usage of logging.basicConfig:
-#
-# It is a convenience method intended for use by simple scripts to do one-shot configuration of the logging package.
-#
-# ===> This function DOES NOTHING if the root logger already has handlers  configured
-
-assert logging.root == logging.getLogger()
-assert not logging.root.handlers
-# logging.basicConfig(level=logging.DEBUG)
-
 
 @contextmanager
 def log_context(logger: logging.Logger, level: int, msg: str, *args, **kwargs):
@@ -37,14 +27,20 @@ def test_log_context():
 
     extras: dict[str, Any] = {"user_id": user_id}
     with log_context(
-        logger, logging.INFO, " %s with %s ", f"{user_id=}", f"{value=}", extras=extras
+        logger, logging.INFO, " %s with %s ", f"{user_id=}", f"{value=}", extra=extras
     ):
         for n in range(3):
             time.sleep(0.5)
             logger.info("Going so far good %d", n)
 
     with log_context(
-        logger, logging.INFO, " %s with %s ", f"{user_id=}", f"{value=}", extras=extras
+        logger,
+        logging.INFO,
+        " %s with %s %s",
+        f"{user_id=}",
+        f"{value=}",
+        extras,
+        extra=extras,
     ):
         for n in range(3):
             time.sleep(0.5)
@@ -69,6 +65,15 @@ def logit(log):
 @pytest.mark.skip(reason="DEV")
 def test_logging_lib():
 
+    # logging.basicConfig(level=logging.DEBUG)
+    # Normal usage of logging.basicConfig:
+    #
+    # It is a convenience method intended for use by simple scripts to do one-shot configuration of the logging package.
+    #
+    # ===> This function DOES NOTHING if the root logger already has handlers  configured
+
+    assert logging.root == logging.getLogger()
+    assert not logging.root.handlers
     # logging.basicConfig(level=logging.DEBUG)
 
     # setting level DOES NOT creates handler
