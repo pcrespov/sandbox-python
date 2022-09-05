@@ -126,3 +126,6 @@ dsk.svg
 
 # profiler artifacts
 *.cprof
+openapi-generator/petstore.json
+
+openapi-generator/out/
