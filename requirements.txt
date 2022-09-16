@@ -1,7 +1,6 @@
-pytest
-
-# tools
-pylint
-pip-tools
-isort
 black
+isort
+pip-tools
+pydantic
+pylint
+pytest
