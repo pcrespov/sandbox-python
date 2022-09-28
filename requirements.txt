@@ -1,8 +1,7 @@
-# tools
 pylint
-pip-tools
+pytest
+pytest-asyncio
 isort
 black
 mypy
-
-# ipykernel
+pre-commit
