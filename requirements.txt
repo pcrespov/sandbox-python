@@ -1,5 +1,7 @@
-# tools
-black
-isort
 pylint
 pytest
+pytest-asyncio
+isort
+black
+mypy
+pre-commit

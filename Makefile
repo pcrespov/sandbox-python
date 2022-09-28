@@ -6,11 +6,17 @@ REPO_BASE_DIR := $(shell git rev-parse --show-toplevel)
 
 
 .PHONY: devenv
-devenv: .venv ## Creates a python virtual environment in .venv and installs development tools (pip, pylint, ...)
 .venv:
-	@python3 -m venv .venv
-	@.venv/bin/pip3 install --upgrade pip wheel setuptools
-	@.venv/bin/pip3 install -r requirements.txt
+	# create virtualenv
+	python3 -m venv .venv
+	# upgrade packages tools
+	.venv/bin/pip3 install --upgrade pip wheel setuptools
+
+devenv: .venv ## create a python virtual environment with dev tools (e.g. linters, etc)
+	# Install tooling
+	$</bin/pip3 install -r requirements.txt
+	# Installing pre-commit hooks in current .git repo
+	@$</bin/pre-commit install
 	@echo "To activate the venv, execute 'source .venv/bin/activate'"
 
 
