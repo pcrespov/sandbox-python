@@ -6,43 +6,19 @@ from pathlib import Path
 from typing import Callable, Optional
 
 import typer
-from pydantic import BaseModel, BaseSettings, Field, ValidationError, validator
-from pydantic.decorator import ValidatedFunction
 
 # user functions --------------------
 #
 #  - Preferably some noun
+#  - this script needs to be in .osparc/{service}/ folder
+#  - this script is
 #
+#
+from myfuncs import cook, hola, salute
+from pydantic import BaseModel, BaseSettings, ValidationError, validator
+from pydantic.decorator import ValidatedFunction
 
-
-def hello() -> None:
-    """
-    This is some help doc for hello
-    """
-    print("hello world")
-
-
-def salute(name: str, lastname: str, formal: bool = False) -> int:
-    "Some doc about salute"
-    if formal:
-        print(f"Hello Mr. {name} {lastname}.")
-        return 1
-    else:
-        print(f"Hello {name} {lastname}")
-        return 1
-
-
-class Cake(BaseModel):
-    length: float = Field(units="cm")
-    weight: float = Field(units="kg")
-
-
-def cook(cake: Cake) -> Cake:
-    return cake
-
-
-EXPOSED_REGISTRY = [salute, hello, cook]
-
+EXPOSED_REGISTRY = [salute, hola, cook]
 
 # --------------------
 # osparc-integration side
