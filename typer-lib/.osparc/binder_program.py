@@ -1,3 +1,6 @@
+import importlib
+import importlib.machinery
+import importlib.util
 import inspect
 import json
 import logging
@@ -6,6 +9,7 @@ import sys
 from copy import deepcopy
 from inspect import Parameter, Signature
 from pathlib import Path
+from textwrap import indent
 from typing import Any, Callable, Final, Mapping, Optional, get_args, get_origin
 
 import typer
@@ -22,8 +26,6 @@ from pydantic import (
 from pydantic.decorator import ValidatedFunction
 from pydantic.tools import schema_of
 
-from myfuncs import cook, hola, salute
-
 log = logging.getLogger(__name__)
 
 
@@ -35,16 +37,74 @@ log = logging.getLogger(__name__)
 #
 
 
-EXPOSED_REGISTRY = [salute, hola, cook]
-DEFAULT_AUTHORS = [
-    {
-        "name": "Pedro Crespo-Valero",
-        "email": "pedro@it.is",
-        "affiliation": "IT'IS Foundation",
-    },
-]
+DOT_OSPARC_DIR = (
+    Path(sys.argv[0] if __name__ == "__main__" else __file__).resolve().parent
+)
+assert DOT_OSPARC_DIR.name == ".osparc", "Should always be under .osparc/"
+
+SETTINGS = json.loads((DOT_OSPARC_DIR / "settings.json").read_text())
+
+
+def _import_module_from_path(module_name: str, module_path: Path):
+    # SEE https://docs.python.org/3/library/importlib.html#importing-a-source-file-directly
+
+    spec = importlib.util.spec_from_file_location(module_name, module_path)
+    assert spec
+    module = importlib.util.module_from_spec(spec)
+
+    assert module
+    assert spec.loader
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+
+    # filefinder = importlib.machinery.FileFinder(f"{CURRENT_DIR.parent}")
+    # spec1 = filefinder.find_spec(module_name)
+
+
+def discover_published_functions() -> list:
+
+    published = []
+
+    # publish_functions
+    # TODO: with pydantic
+    functions_dotted_names = SETTINGS["publish_functions"]
+    for dotted_name in functions_dotted_names:
+        parts = dotted_name.split(".")
+        module_name = ".".join(parts[:-1])
+        func_name = parts[-1]
+
+        try:
+            try:
+                module = importlib.import_module(module_name)
+            except (ImportError, ModuleNotFoundError):
+                # assumes code in $here, given $here/.osparc
+                module_tail_path = "/".join(parts[:-1]) + ".py"
+                module = _import_module_from_path(
+                    module_name, DOT_OSPARC_DIR.parent / module_tail_path
+                )
+            func = getattr(module, func_name)
+            published.append(func)
+        except (AttributeError, ModuleNotFoundError, FileNotFoundError) as err:
+            log.error(
+                "Skipping publish_functions %s %s:\n%s",
+                dotted_name,
+                "Could not module. TIP: Include path to the package in PYTHONPATH environment variable",
+                indent(f"{err}", prefix=" "),
+            )
+
+    return published
+
+
 # --------------------
-# osparc-integration side
+# osparc binder program
+#
+#  runs: creates entrypoint to run function
+#      - Creates CLI that
+#           - reads environs
+#           - load + parse inputs -> model
+#           - calls core_func (inputs)
+#           - write outputs
+#      -
 #
 
 
@@ -53,7 +113,10 @@ DEFAULT_AUTHORS = [
 #
 
 
-class Settings(BaseSettings):
+#
+# Needed for execution
+#
+class ContainerEnvironmentSettings(BaseSettings):
     # envs setup by sidecar
     INPUT_FOLDER: Path
     OUTPUT_FOLDER: Path
@@ -309,12 +372,13 @@ def run_service(core_func: Callable):
 
     # envs and inputs (setup by sidecar)
     try:
-        settings = Settings()  # captures  settings TODO: move
+        settings = ContainerEnvironmentSettings()  # captures  settings TODO: move
         log.info("Settings setup by sidecar %s", settings.json(indent=1))
 
         inputs: BaseModel = vfunc.model.parse_file(settings.input_file)
 
     except json.JSONDecodeError as err:
+        assert settings
         raise ValueError(
             f"Invalid input file ({settings.input_file}) json format: {err}"
         ) from err
@@ -354,7 +418,7 @@ def create_service_cli(core_func: Callable):
             echo_dot_osparc(
                 core_func,
                 version=version,
-                authors=DEFAULT_AUTHORS,
+                authors=SETTINGS.get("metadata", {}).get("authors", []),
             )
             return
 
@@ -420,7 +484,11 @@ def create_typer(core_func: Callable):
 
         # TOOLING
         elif dot_osparc_config:
-            echo_dot_osparc(core_func, version=version, authors=DEFAULT_AUTHORS)
+            echo_dot_osparc(
+                core_func,
+                version=version,
+                authors=SETTINGS.get("metadata", {}).get("authors", []),
+            )
             return
 
     return app
@@ -430,6 +498,8 @@ def create_cli(expose: list[Callable]) -> typer.Typer:
     #
     # Knows that CLI is used w/o arguments/options (osparc integration)
     #
+    assert expose
+
     main = typer.Typer()
     # for func in expose:
     #    app.command(name=func.__name__)(create_service_cli(func))
@@ -440,7 +510,7 @@ def create_cli(expose: list[Callable]) -> typer.Typer:
     return main
 
 
-main = create_cli(expose=EXPOSED_REGISTRY)
+main = create_cli(expose=discover_published_functions())
 
 if __name__ == "__main__":
     main()

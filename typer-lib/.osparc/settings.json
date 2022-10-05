@@ -1,0 +1,16 @@
+{
+    "publish_functions": [
+        "myfuncs.salute",
+        "myfuncs.hola",
+        "myfuncs.cook"
+    ],
+    "metadata": {
+        "authors": [
+            {
+                "name": "Pedro Crespo-Valero",
+                "email": "pedro@it.is",
+                "affiliation": "IT'IS Foundation"
+            }
+        ]
+    }
+}
