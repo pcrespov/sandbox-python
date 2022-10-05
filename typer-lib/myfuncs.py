@@ -13,7 +13,7 @@ def hola() -> None:
     print("hello world")
 
 
-def salute(name: str, lastname: str, formal: bool = False) -> int:
+def salute(*, name: str, lastname: str, formal: bool = False) -> int:
     "Some doc about salute"
     if formal:
         print(f"Hello Mr. {name} {lastname}.")
@@ -28,5 +28,5 @@ class Cake(BaseModel):
     weight: float = Field(units="kg")
 
 
-def cook(cake: Cake) -> Cake:
+def cook(*, cake: Cake) -> Cake:
     return cake
