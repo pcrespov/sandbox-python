@@ -1,0 +1,8 @@
+version: "3.9"
+services:
+  demo:
+    image: local/demo:latest
+    build:
+      context: .
+      dockerfile: .osparc/Dockerfile
+    entrypoint: bash
