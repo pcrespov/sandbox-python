@@ -10,7 +10,7 @@ from copy import deepcopy
 from inspect import Parameter, Signature
 from pathlib import Path
 from textwrap import indent
-from typing import Any, Callable, Final, Mapping, Optional, get_args, get_origin
+from typing import Any, Callable, Mapping, Optional
 
 import typer
 import yaml
@@ -25,6 +25,11 @@ from pydantic import (
 )
 from pydantic.decorator import ValidatedFunction
 from pydantic.tools import schema_of
+
+try:
+    from typing import Final, get_args, get_origin
+except ImportError:
+    from typing_extensions import Final, get_args, get_origin
 
 log = logging.getLogger(__name__)
 
@@ -455,7 +460,7 @@ def __create_service_cli(core_func: Callable):
         print(f"Executed '{core_func.__name__}(**inputs)'")
 
         # OUTPUTS
-        print(f"Got {outputs=}")
+        print(f"Got {outputs}")
         print(f"Validating {signature.return_annotation}")
         print("Writes 'outputs.json'")
 
@@ -510,7 +515,6 @@ def create_cli(expose: list[Callable]) -> typer.Typer:
     return main
 
 
-main = create_cli(expose=discover_published_functions())
-
 if __name__ == "__main__":
+    main = create_cli(expose=discover_published_functions())
     main()

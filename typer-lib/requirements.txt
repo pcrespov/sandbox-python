@@ -1,3 +1,5 @@
-pydantic[email]>=1.10.2,<2.0.0
+pydantic[email]>=1.0.2,<2.0.0
 pytest
+pyyaml
 typer>=0.6.1,<1.0.0
+typing_extensions ; python_version<'3.8'
