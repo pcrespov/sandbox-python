@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import importlib
 import importlib.machinery
 import importlib.util
@@ -31,7 +32,12 @@ try:
 except ImportError:
     from typing_extensions import Final, get_args, get_origin
 
+
+# Prefer log over rich.print to produce structured logs that can be easily transferred to the system
 log = logging.getLogger(__name__)
+logging.basicConfig(
+    format="%(levelname)s [binder_program]: %(message)s", level=logging.DEBUG
+)
 
 
 # user functions --------------------
@@ -57,13 +63,14 @@ def _import_module_from_path(module_name: str, module_path: Path):
     assert spec
     module = importlib.util.module_from_spec(spec)
 
+    # filefinder = importlib.machinery.FileFinder(f"{CURRENT_DIR.parent}")
+    # spec1 = filefinder.find_spec(module_name)
+
     assert module
     assert spec.loader
     sys.modules[module_name] = module
     spec.loader.exec_module(module)
-
-    # filefinder = importlib.machinery.FileFinder(f"{CURRENT_DIR.parent}")
-    # spec1 = filefinder.find_spec(module_name)
+    return module
 
 
 def discover_published_functions() -> list:
@@ -73,6 +80,7 @@ def discover_published_functions() -> list:
     # publish_functions
     # TODO: with pydantic
     functions_dotted_names = SETTINGS["publish_functions"]
+
     for dotted_name in functions_dotted_names:
         parts = dotted_name.split(".")
         module_name = ".".join(parts[:-1])
@@ -90,10 +98,10 @@ def discover_published_functions() -> list:
             func = getattr(module, func_name)
             published.append(func)
         except (AttributeError, ModuleNotFoundError, FileNotFoundError) as err:
-            log.error(
+            log.warning(
                 "Skipping publish_functions %s %s:\n%s",
                 dotted_name,
-                "Could not module. TIP: Include path to the package in PYTHONPATH environment variable",
+                "Could not load module. TIP: Include path to the package in PYTHONPATH environment variable",
                 indent(f"{err}", prefix=" "),
             )
 
@@ -193,7 +201,7 @@ def echo_dot_osparc(
     authors: list[Author],
     contact: Optional[EmailStr] = None,
 ):
-    print(f".osparc/{core_func.__name__}/metadata.yaml created")
+    log.debug("Save to .osparc/%s/metadata.yaml created", core_func.__name__)
 
     if contact is None:
         contact = authors[0].email
@@ -357,11 +365,27 @@ def echo_dot_osparc(
 
         return meta
 
-    print(
-        yaml.safe_dump(
-            _create_meta(func=core_func), sys.stdout, indent=1, sort_keys=False
-        )
-    )
+    metadata = _create_meta(func=core_func)
+    runtime = {
+        "settings": [
+            {
+                "name": "ContainerSpec",
+                "type": "ContainerSpec",
+                "value": {
+                    "Command": [".osparc/binder_program.py", core_func.__name__, "run"]
+                },
+            },
+        ]
+    }
+
+    config_folder = DOT_OSPARC_DIR / core_func.__name__
+    config_folder.mkdir(parents=True, exist_ok=True)
+
+    with (config_folder / "metadata.yml").open("wt") as fh:
+        yaml.safe_dump(metadata, fh, indent=1, sort_keys=False)
+
+    with (config_folder / "runtime.yml").open("wt") as fh:
+        yaml.safe_dump(runtime, fh, indent=1, sort_keys=False)
 
 
 def echo_jsonschema(core_func: Callable):
@@ -477,7 +501,7 @@ def create_typer(core_func: Callable):
 
     @app.command()
     def config(
-        dot_osparc_config: bool = False,
+        dot_osparc_config: bool = True,
         version: str = "0.1.0",
         jsonschema_inputs: bool = False,
     ):
@@ -503,7 +527,12 @@ def create_cli(expose: list[Callable]) -> typer.Typer:
     #
     # Knows that CLI is used w/o arguments/options (osparc integration)
     #
-    assert expose
+
+    if not expose:
+        # how to turn this into a proper
+        raise ValueError(
+            "No published functions could be exposed. TIP: Include path to the package in PYTHONPATH environment variable"
+        )
 
     main = typer.Typer()
     # for func in expose:
@@ -516,5 +545,9 @@ def create_cli(expose: list[Callable]) -> typer.Typer:
 
 
 if __name__ == "__main__":
-    main = create_cli(expose=discover_published_functions())
-    main()
+    try:
+        main = create_cli(expose=discover_published_functions())
+        main()
+    except Exception as err:
+        log.exception("Stopping application. %s", err)
+        sys.exit(os.EX_SOFTWARE)

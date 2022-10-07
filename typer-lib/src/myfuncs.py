@@ -24,10 +24,10 @@ def salute(*, name: str, lastname: str, formal: bool = False) -> int:
 
 
 class Cake(BaseModel):
-    length: float = Field(units="cm")
+    radius: float = Field(units="cm")
     weight: float = Field(units="kg")
 
 
-def cook(*, cake: Cake) -> Cake:
+def cook(*, number_of_cakes: int = 1) -> list[Cake]:
     """Esra's cook function"""
-    return cake
+    return [Cake(radius=1 + n, weight=0.5) for n in range(number_of_cakes)]
