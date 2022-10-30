@@ -1,6 +1,7 @@
 black
 isort
 pip-tools
+pre-commit
 pydantic
 pylint
 pytest
