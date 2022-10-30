@@ -35,9 +35,16 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # in the image will be those from our virtualenv.
 ENV PATH="${VIRTUAL_ENV}/bin:$PATH"
 
+RUN python -m venv "${VIRTUAL_ENV}"
+RUN pip install --no-cache-dir --upgrade \
+    pip~=22.0  \
+    wheel \
+    setuptools
 
-USER scu
+RUN pip install --no-cache-dir pytest
 
-WORKDIR /build
-COPY tests .
-COPY Makefile .
+
+WORKDIR /src
+COPY tests/ Makefile cli.py .
+
+ENTRYPOINT [ "python", "/src/cli.py"]
