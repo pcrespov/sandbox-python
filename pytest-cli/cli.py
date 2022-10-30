@@ -12,12 +12,25 @@ class MyPlugin:
 
 
 if __name__ == "__main__":
+    print(f"{CURRENT_DIR=}")
+    print("Running", sys.argv, "...")
+    # Somehow if the __pycache__ external gets copied in the container, then it cannot see the
+
     extra_args = []
     if len(sys.argv) > 1:
         extra_args = sys.argv[1:]
 
+    print(["-vv", f"{CURRENT_DIR /'tests'}"] + extra_args)
     sys.exit(
         pytest.main(
-            ["-vv", f"{CURRENT_DIR /'tests'}"] + extra_args, plugins=[MyPlugin()]
+            [
+                "-vv",
+                "--log-level=DEBUG",
+                "--cache-clear",
+                "--override-ini=cache_dir=/tmp/.pytest_cache",
+                f"{CURRENT_DIR /'tests'}",
+            ]
+            + extra_args,
+            plugins=[MyPlugin()],
         )
     )
