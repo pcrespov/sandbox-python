@@ -1,7 +1,10 @@
+black
+faker
+isort
+mypy
+pre-commit
+pydantic
 pylint
 pytest
 pytest-asyncio
-isort
-black
-mypy
-pre-commit
+pytest-benchmark
