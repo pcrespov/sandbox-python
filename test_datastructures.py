@@ -1,3 +1,4 @@
+import itertools
 from dataclasses import dataclass
 from typing import NamedTuple, TypedDict
 
@@ -78,9 +79,18 @@ def data(faker: Faker):
 
 
 @pytest.mark.parametrize(
-    "cls",
-    (TagPydanticDataclass, TagPydanticModel, TagTypeDict, TagDataClass, TagNameTuple),
+    "cls,n",
+    itertools.product(
+        (
+            TagPydanticDataclass,
+            TagPydanticModel,
+            TagTypeDict,
+            TagDataClass,
+            TagNameTuple,
+        ),
+        (1000, 10000, 100000),
+    ),
 )
-def test_speed(benchmark, cls, data):
-    build = lambda: [cls(**data) for _ in range(1000)]
+def test_speed(benchmark, cls, n, data):
+    build = lambda: [cls(**data) for _ in range(n)]
     d = benchmark(build)
