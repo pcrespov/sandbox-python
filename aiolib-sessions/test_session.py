@@ -74,6 +74,7 @@ async def test_continuation(client: TestClient):
     assert response.status == 200
 
     response = await client.get("/protected")
+    response.cookies
     assert response.status == 401
 
     # one time access granted
