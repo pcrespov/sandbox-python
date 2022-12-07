@@ -1,0 +1,4 @@
+aiohttp
+aiohttp_session[secure]
+pytest
+pytest-aiohttp

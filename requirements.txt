@@ -1,5 +1,10 @@
-# tools
-pylint
-pip-tools
-isort
 black
+faker
+isort
+mypy
+pre-commit
+aiohttp
+pylint
+pytest
+pytest-aiohttp
+pytest-benchmark
