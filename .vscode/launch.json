@@ -12,15 +12,30 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "Python: Run Current File's Test Suite",
+            "name": "Python: Current File with profiler",
+            "type": "python",
+            "request": "launch",
+            "module": "cProfile",
+            "args": [
+                "-o",
+                "/tmp/tmp.prof",
+                "${file}"
+            ]
+            // Then `snakeviz /tmp/tmp.prof`
+        },
+        {
+            "name": "Python: Run Test",
             "type": "python",
             "request": "launch",
             "module": "pytest",
             "args": [
-                "-s",
-                "--log-cli-level=INFO",
                 "--ff",
+                "--log-cli-level=INFO",
+                "--pdb",
                 "--setup-show",
+                "-sx",
+                "-vv",
+                "--asyncio-mode=auto",
                 "${file}"
             ],
             "cwd": "${workspaceFolder}",
