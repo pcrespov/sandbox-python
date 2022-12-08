@@ -21,14 +21,13 @@ def update_last_visit(session):
 
 async def handler(request):
     session = await get_session(request)
-    update_last_visit(session)
+    session["last_visit"] = time.time()
 
     return web.Response(text="OK")
 
 
 async def one_time_access_handler(request):
     session = await get_session(request)
-    update_last_visit(session)
     session["protected_handler"] = True
 
     return web.Response(text="One time access granted")
@@ -36,7 +35,6 @@ async def one_time_access_handler(request):
 
 async def protected_handler(request):
     session = await get_session(request)
-    update_last_visit(session)
     if not session.get("protected_handler"):
         raise web.HTTPUnauthorized
     del session["protected_handler"]
@@ -51,8 +49,8 @@ def init():
         EncryptedCookieStorage(
             secret_key=b"Thirty  two  length  bytes  key.",
             cookie_name="sandbox_python.aiolib-session.test_session",
-            max_age=1 * _DAY,
-            secure=True,
+            # max_age=1 * _DAY,
+            # secure=True, WARNING: the TestClient deletes the cookie on every call with this option
         ),
     )
     app.router.add_route("GET", "/", handler)
@@ -62,6 +60,9 @@ def init():
     return app
 
 
+# --------------------------------------------------------------------------------------------------------------
+
+
 @pytest.fixture
 def client(event_loop, aiohttp_client) -> TestClient:
     app = init()
@@ -69,23 +70,28 @@ def client(event_loop, aiohttp_client) -> TestClient:
 
 
 async def test_continuation(client: TestClient):
+    cookie_name = "sandbox_python.aiolib-session.test_session"
 
     response = await client.get("/")
     assert response.status == 200
 
     response = await client.get("/protected")
-    response.cookies
     assert response.status == 401
 
     # one time access granted
     response = await client.get("/access")
     assert response.status == 200
 
-    response = await client.get("/protected")
+    response = await client.get("/protected", cookies=response.cookies)
     assert response.status == 200
     for _ in range(3):
         response = await client.get("/protected")
         assert response.status == 401
+
+
+async def test_cookie_expiration(client: TestClient):
+    # TODO:
+    assert client
 
 
 if __name__ == "__main__":
