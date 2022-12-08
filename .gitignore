@@ -84,6 +84,7 @@ celerybeat-schedule
 # Environments
 .env
 .venv
+.venv*
 env/
 venv/
 ENV/
@@ -123,9 +124,3 @@ prefect-tutorial/etl-flow.svg
 
 dask-worker-space
 dsk.svg
-
-# profiler artifacts
-*.cprof
-openapi-generator/petstore.json
-
-openapi-generator/out/
