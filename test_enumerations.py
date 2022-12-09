@@ -1,3 +1,4 @@
+import enum
 from enum import Enum, unique
 
 
@@ -28,10 +29,45 @@ class RunningState(str, Enum):
         )
 
 
-
-
-
-
-
 print(RunningState.UNKNOWN.is_running)
 print(RunningState.PUBLISHED.is_running)
+
+
+class ConfirmationAction(enum.Enum):
+    REGISTRATION = "REGISTRATION"
+    RESET_PASSWORD = "RESET_PASSWORD"
+    CHANGE_EMAIL = "CHANGE_EMAIL"
+    INVITATION = "INVITATION"
+
+
+@unique
+class ConfirmationActionNEW(str, enum.Enum):
+    REGISTRATION = "REGISTRATION_NEW"
+    RESET_PASSWORD = "RESET_PASSWORD"
+    CHANGE_EMAIL = "CHANGE_EMAIL"
+    INVITATION = "INVITATION"
+
+
+class UserStatusNEW(str, Enum):
+    """
+    pending: user registered but not confirmed
+    active: user is confirmed and can use the platform
+    expired: user is not authorized because it expired after a trial period
+    banned: user is not authorized
+    """
+
+    CONFIRMATION_PENDING = "PENDING"
+    ACTIVE = "ACTIVE"
+    EXPIRED = "EXPIRED"
+    BANNED = "BANNED"
+
+
+def test_inherits_from_str_and_enum():
+
+    assert f"{ConfirmationAction.REGISTRATION}" == "ConfirmationAction.REGISTRATION"
+    assert ConfirmationAction.REGISTRATION != "REGISTRATION"
+    assert ConfirmationAction.REGISTRATION.name == "REGISTRATION"
+
+    assert f"{ConfirmationActionNEW.REGISTRATION}" == "REGISTRATION_NEW"
+    assert ConfirmationActionNEW.REGISTRATION == "REGISTRATION_NEW"
+    assert ConfirmationActionNEW.REGISTRATION.value == "REGISTRATION_NEW"
