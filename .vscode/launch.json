@@ -33,7 +33,7 @@
                 "--log-cli-level=INFO",
                 "--pdb",
                 "--setup-show",
-                "-sx",
+                "-s",
                 "-vv",
                 "--asyncio-mode=auto",
                 "${file}"
