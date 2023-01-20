@@ -5,6 +5,10 @@ labels: ["release"]
 assignees:
   - pcrespov
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this release report!
   - type: input
     id: sprint_name
     attributes:
@@ -34,8 +38,8 @@ body:
       label: Is this commit built?
       description: Please search to see if an issue already exists for the bug you encountered.
       options:
-      - label: I have searched the existing issues
-        required: true
+        - label: I have searched the existing issues
+          required: true
   - type: textarea
     id: what-happened
     attributes:
@@ -43,16 +47,6 @@ body:
       description: Also tell us, what did you expect to happen?
       placeholder: Tell us what you see!
       value: "A bug happened!"
-    validations:
-      required: true
-  - type: dropdown
-    id: version
-    attributes:
-      label: Version
-      description: What version of our software are you running?
-      options:
-        - 1.0.2 (Default)
-        - 1.0.3 (Edge)
     validations:
       required: true
   - type: dropdown
@@ -78,4 +72,6 @@ body:
       description: By submitting this issue, you agree to follow our [Code of Conduct](https://example.com)
       options:
         - label: I agree to follow this project's Code of Conduct
+          required: true
+        - label: Second agreement
           required: true
