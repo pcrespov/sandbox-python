@@ -74,7 +74,6 @@ def test_inherits_from_str_and_enum():
 
 
 class AutoName(str, Enum):
-    # NOTE: that inherits from str as well!
     def _generate_next_value_(name, start, count, last_values):
         return name
 
