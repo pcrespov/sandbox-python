@@ -1,5 +1,5 @@
 import enum
-from enum import Enum, unique
+from enum import Enum, auto, unique
 
 
 @unique
@@ -71,3 +71,30 @@ def test_inherits_from_str_and_enum():
     assert f"{ConfirmationActionNEW.REGISTRATION}" == "REGISTRATION_NEW"
     assert ConfirmationActionNEW.REGISTRATION == "REGISTRATION_NEW"
     assert ConfirmationActionNEW.REGISTRATION.value == "REGISTRATION_NEW"
+
+
+class AutoName(str, Enum):
+    # NOTE: that inherits from str as well!
+    def _generate_next_value_(name, start, count, last_values):
+        return name
+
+
+class Ordinal(AutoName):
+    NORTH = auto()
+    SOUTH = auto()
+    EAST = auto()
+    WEST = auto()
+
+
+def test_autoname():
+    assert list(f"{n}" for n in Ordinal) == [
+        "NORTH",
+        "SOUTH",
+        "EAST",
+        "WEST",
+    ]
+
+    assert f"{Ordinal.NORTH}" == "NORTH"
+    assert Ordinal.NORTH == "NORTH"
+    assert Ordinal.NORTH.value == "NORTH"
+    assert Ordinal.NORTH.name == "NORTH"
