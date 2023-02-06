@@ -45,7 +45,6 @@ RUN pip install --no-cache-dir pytest
 
 
 WORKDIR /src
-COPY tests/*.py tests/
-COPY cli.py .
+COPY tests/ Makefile cli.py .
 
 ENTRYPOINT [ "python", "/src/cli.py"]
