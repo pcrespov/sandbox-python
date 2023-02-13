@@ -21,6 +21,7 @@
                 "--log-cli-level=INFO",
                 "--pdb",
                 "--setup-show",
+                "--asyncio-mode=auto",
                 "-sx",
                 "-vv",
                 "${file}"
