@@ -1,9 +1,9 @@
-import httpx
-import aiofiles
-import aiofiles.os
+import asyncio
 from pathlib import Path
 
-import asyncio
+import aiofiles
+import aiofiles.os
+import httpx
 
 
 def about_timeout():
@@ -14,7 +14,7 @@ def about_timeout():
 
 async def download_and_save_file(output_path: Path):
     async def _download_chunk(client: httpx.AsyncClient):
-        url =  "http://127.0.0.1:8000/large-file"
+        url = "http://127.0.0.1:8000/large-file"
         async with client.stream("GET", url) as resp:
             print(resp.headers)
             if int(resp.headers["Content-Length"]) < 1024 * 1024:
@@ -40,6 +40,10 @@ async def download_and_save_file(output_path: Path):
         print(await aiofiles.os.stat(output_path))
 
 
+def run_download_and_save_file():
+    asyncio.run(download_and_save_file(Path("ignore/downloaded.txt")))
+
+
 if __name__ == "__main__":
     # about_timeout()
-    asyncio.run(download_and_save_file(Path("ignore/downloaded.txt")))
+    run_download_and_save_file()
