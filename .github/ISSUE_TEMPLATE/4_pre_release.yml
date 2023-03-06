@@ -8,13 +8,15 @@ body:
     attributes:
       label: What kind of pre-release?
       options:
-        - Staging
-        - Hotfix to Staging
+        - "HEAD to Staging"
+        - "Hotfix to Staging"
+    validations:
+      required: true
   - type: input
     id: sprint_name
     attributes:
       label: Sprint Name
-      description: Name of the sprint in camelcase
+      description: Name of the sprint in camelcase. Check [Releases](https://github.com/ITISFoundation/osparc-simcore/releases)
       placeholder: ex. ResistanceIsFutile
     validations:
       required: true
@@ -22,7 +24,7 @@ body:
     id: version
     attributes:
       label: Pre-release version
-      description: Pre-release count (>=1)
+      description: Pre-release count (>=1). Check [Releases](https://github.com/ITISFoundation/osparc-simcore/releases)
       placeholder: ex. 9
     validations:
       required: true
