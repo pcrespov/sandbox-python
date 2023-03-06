@@ -9,8 +9,8 @@ body:
     attributes:
       label: What kind of pre-release?
       options:
-        - "HEAD to Staging"
-        - "Hotfix to Staging"
+        - "master branch"
+        - "🚑️ hotfix branch"
     validations:
       required: true
   - type: input
@@ -46,3 +46,18 @@ body:
       options:
         - label: The commit CI succeeded.
           required: true
+  - type: textarea
+    attributes:
+      label: Motivate
+      description: |
+        Staging is an intermediate environment between development (master) and production that allows us to test in isolation changes in the framework.
+        In addition, the pre-release workflow shall be used as a simulation to production that can help us to anticipate changes and mitigate failures.
+
+        - Explain what motivates this pre-release?
+        - Which important changes we might pay attention to?
+        - How should we test them?
+        - Is there anything in particular we should monitor?
+      placeholder: |
+        - Weekly release to staging (Tuesday)
+    validations:
+      required: false
