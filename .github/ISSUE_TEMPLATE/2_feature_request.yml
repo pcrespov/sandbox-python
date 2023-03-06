@@ -14,7 +14,8 @@ body:
       label: User Story
       description: |
         A clear and concise description of how the feature works and looks like from the user's perspective.
-        Example: I want to be able the stop the running pipeline by pressing a stop button.
+      placeholder: |
+        Ex. I want to be able the stop the running pipeline by pressing a stop button.
         If the pipeline is stopped, I see a info-level message confirming it in the logger,
         if it fails the message should be displayed in red (error).
         Also, all the progress bars in the nodes must be set to 0.
