@@ -1,0 +1,3 @@
+aiohttp
+# https://openapi-spec-validator.readthedocs.io/en/latest/python.html
+openapi-spec-validator
