@@ -58,11 +58,11 @@ body:
       description: |
         Check the PRs marked with (⚠️ devops).
         Determine and commit necessary changes required in the ``osparc-ops-*`` repos.
-        Log below completed steps and issues
+        Log below completed steps and issues of interest.
       value: |
         - [ ] Add changes (if any) and release tags in https://github.com/ITISFoundation/osparc-ops-environments/tags
         - [ ] Add changes (if any) and release tags in osparc ops configurations
-        - [ ] ...
+        - [ ] (... issue ... )
     validations:
       required: false
   - type: textarea
