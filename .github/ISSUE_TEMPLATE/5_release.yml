@@ -25,10 +25,11 @@ body:
   - type: input
     id: staging_release
     attributes:
-      label: Follows from Pre-release
+      label: "Previous pre-release"
       description: |
         Link to pre-release to staging tha preceeds this release
       placeholder: https://github.com/ITISFoundation/osparc-simcore/releases/tag/staging_Mithril2
+      value: https://github.com/ITISFoundation/osparc-simcore/releases/tag/staging_Mithril2
     validations:
       required: true
   - type: checkboxes
