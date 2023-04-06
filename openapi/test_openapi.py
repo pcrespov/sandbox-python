@@ -1,7 +1,7 @@
 import json
 
 from aiohttp import web
-from openapi_spec_validator import validate_spec_url
+from openapi_spec_validator import validate_spec
 
 # Load the OpenAPI specification
 with open("openapi.json") as f:
@@ -21,7 +21,7 @@ app.add_routes([web.get("/hello", hello)])
 # Define a test function that validates the routes against the OpenAPI specification
 def test_validate_routes():
     # Validate the routes against the OpenAPI specification
-    errors = validate_spec_url(spec, app.router)
+    errors = validate_spec(spec, app.router)
 
     # Check if there are any validation errors
     assert not errors, f"Validation errors: {errors}"
