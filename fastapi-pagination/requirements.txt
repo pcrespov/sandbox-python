@@ -1,0 +1,2 @@
+fastapi
+fastapi-pagination # SEE https://uriyyo-fastapi-pagination.netlify.app/
