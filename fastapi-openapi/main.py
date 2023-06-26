@@ -1,12 +1,25 @@
-import json
+from typing import Annotated
 
-from fastapi import FastAPI
-from pydantic import AnyUrl, BaseModel, conint
+from fastapi import Depends, FastAPI
+from pydantic import AnyUrl, BaseModel, Field, conint
+
+
+class BodyModel(BaseModel):
+    """Describes Model"""
+
+    foo: int
 
 
 class StuffGet(BaseModel):
-    int: conint(gt=33)
+    """Describes response"""
+
+    number: conint(gt=33)
     link: AnyUrl  # <<<---- ISSUE with these types
+
+
+class ParamsModel(BaseModel):
+    param: int = Field(description="describes param", le=3)
+    query: int = Field(description="describes query", ge=2)
 
 
 #
@@ -25,11 +38,6 @@ class StuffGet(BaseModel):
 app = FastAPI()
 
 
-@app.get("/stuff", response_model=StuffGet)
-async def get_stuff():
+@app.post("/stuff/{param}", response_model=StuffGet)
+async def get_stuff(body: BodyModel, params: Annotated[ParamsModel, Depends()]):
     pass
-
-
-if __name__ == "__main__":
-    with open("openapi.json", "wt") as fh:
-        json.dump(app.openapi(), fh, indent=1)
