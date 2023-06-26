@@ -12,6 +12,19 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "Uvicorn: Run main:app",
+            "type": "python",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "main:app",
+                "--reload",
+            ],
+            "cwd": "${fileDirname}",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
             "name": "Python: Run Test",
             "type": "python",
             "request": "launch",
