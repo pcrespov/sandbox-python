@@ -166,7 +166,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LimitOffsetPage_File_"
+                  "$ref": "#/components/schemas/Page_File_"
                 }
               }
             }
@@ -491,7 +491,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LimitOffsetPage_Solver_"
+                  "$ref": "#/components/schemas/Page_Solver_"
                 }
               }
             }
@@ -578,7 +578,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LimitOffsetPage_Solver_"
+                  "$ref": "#/components/schemas/Page_Solver_"
                 }
               }
             }
@@ -746,7 +746,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LimitOffsetPage_Solver_"
+                  "$ref": "#/components/schemas/Page_Solver_"
                 }
               }
             }
@@ -1071,7 +1071,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LimitOffsetPage_Job_"
+                  "$ref": "#/components/schemas/Page_Job_"
                 }
               }
             }
@@ -1609,7 +1609,7 @@
           "solvers"
         ],
         "summary": "Get Job Custom Metadata",
-        "description": "Gets custom metadata from a job",
+        "description": "Gets custom metadata from a job\n\nNew in *version 0.5*",
         "operationId": "get_job_custom_metadata",
         "parameters": [
           {
@@ -1654,6 +1654,16 @@
               }
             }
           },
+          "404": {
+            "description": "Job not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorGet"
+                }
+              }
+            }
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -1664,14 +1674,19 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ]
       },
-      "put": {
+      "patch": {
         "tags": [
           "solvers"
         ],
         "summary": "Replace Job Custom Metadata",
-        "description": "Changes job's custom metadata",
+        "description": "Updates custom metadata from a job\n\nNew in *version 0.5*",
         "operationId": "replace_job_custom_metadata",
         "parameters": [
           {
@@ -1709,7 +1724,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/JobMetadataReplace"
+                "$ref": "#/components/schemas/JobMetadataUpdate"
               }
             }
           },
@@ -1720,7 +1735,19 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/JobMetadata"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Job not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorGet"
+                }
               }
             }
           },
@@ -1734,15 +1761,21 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ]
       }
     },
-    "/v0/studies/": {
+    "/v0/studies": {
       "get": {
         "tags": [
           "studies"
         ],
         "summary": "List Studies",
+        "description": "New in *version 0.5.0* (only with API_SERVER_DEV_FEATURES_ENABLED=1)",
         "operationId": "list_studies",
         "parameters": [
           {
@@ -1775,7 +1808,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LimitOffsetPage_Study_"
+                  "$ref": "#/components/schemas/Page_Study_"
                 }
               }
             }
@@ -1790,7 +1823,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ]
       }
     },
     "/v0/studies/{study_id}": {
@@ -1799,6 +1837,7 @@
           "studies"
         ],
         "summary": "Get Study",
+        "description": "New in *version 0.5.0* (only with API_SERVER_DEV_FEATURES_ENABLED=1)",
         "operationId": "get_study",
         "parameters": [
           {
@@ -1823,6 +1862,16 @@
               }
             }
           },
+          "404": {
+            "description": "Study not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorGet"
+                }
+              }
+            }
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -1833,7 +1882,12 @@
               }
             }
           }
-        }
+        },
+        "security": [
+          {
+            "HTTPBasic": []
+          }
+        ]
       }
     },
     "/v0/studies/{study_id}/ports": {
@@ -1863,6 +1917,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/OnePage_StudyPort_"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Study not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorGet"
                 }
               }
             }
@@ -1933,7 +1997,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/LimitOffsetPage_Job_"
+                  "$ref": "#/components/schemas/Page_Job_"
                 }
               }
             }
@@ -2458,7 +2522,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/JobMetadataReplace"
+                "$ref": "#/components/schemas/JobMetadataUpdate"
               }
             }
           },
@@ -2757,8 +2821,8 @@
           }
         }
       },
-      "JobMetadataReplace": {
-        "title": "JobMetadataReplace",
+      "JobMetadataUpdate": {
+        "title": "JobMetadataUpdate",
         "type": "object",
         "properties": {
           "metadata": {
@@ -2891,150 +2955,6 @@
           "started_at": "2021-04-01 07:16:43.670610"
         }
       },
-      "LimitOffsetPage_File_": {
-        "title": "LimitOffsetPage[File]",
-        "required": [
-          "items",
-          "total",
-          "links"
-        ],
-        "type": "object",
-        "properties": {
-          "items": {
-            "title": "Items",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/File"
-            }
-          },
-          "total": {
-            "title": "Total",
-            "minimum": 0,
-            "type": "integer"
-          },
-          "limit": {
-            "title": "Limit",
-            "minimum": 1,
-            "type": "integer"
-          },
-          "offset": {
-            "title": "Offset",
-            "minimum": 0,
-            "type": "integer"
-          },
-          "links": {
-            "$ref": "#/components/schemas/Links"
-          }
-        }
-      },
-      "LimitOffsetPage_Job_": {
-        "title": "LimitOffsetPage[Job]",
-        "required": [
-          "items",
-          "total",
-          "links"
-        ],
-        "type": "object",
-        "properties": {
-          "items": {
-            "title": "Items",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Job"
-            }
-          },
-          "total": {
-            "title": "Total",
-            "minimum": 0,
-            "type": "integer"
-          },
-          "limit": {
-            "title": "Limit",
-            "minimum": 1,
-            "type": "integer"
-          },
-          "offset": {
-            "title": "Offset",
-            "minimum": 0,
-            "type": "integer"
-          },
-          "links": {
-            "$ref": "#/components/schemas/Links"
-          }
-        }
-      },
-      "LimitOffsetPage_Solver_": {
-        "title": "LimitOffsetPage[Solver]",
-        "required": [
-          "items",
-          "total",
-          "links"
-        ],
-        "type": "object",
-        "properties": {
-          "items": {
-            "title": "Items",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Solver"
-            }
-          },
-          "total": {
-            "title": "Total",
-            "minimum": 0,
-            "type": "integer"
-          },
-          "limit": {
-            "title": "Limit",
-            "minimum": 1,
-            "type": "integer"
-          },
-          "offset": {
-            "title": "Offset",
-            "minimum": 0,
-            "type": "integer"
-          },
-          "links": {
-            "$ref": "#/components/schemas/Links"
-          }
-        }
-      },
-      "LimitOffsetPage_Study_": {
-        "title": "LimitOffsetPage[Study]",
-        "required": [
-          "items",
-          "total",
-          "links"
-        ],
-        "type": "object",
-        "properties": {
-          "items": {
-            "title": "Items",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Study"
-            }
-          },
-          "total": {
-            "title": "Total",
-            "minimum": 0,
-            "type": "integer"
-          },
-          "limit": {
-            "title": "Limit",
-            "minimum": 1,
-            "type": "integer"
-          },
-          "offset": {
-            "title": "Offset",
-            "minimum": 0,
-            "type": "integer"
-          },
-          "links": {
-            "$ref": "#/components/schemas/Links"
-          }
-        }
-      },
       "Links": {
         "title": "Links",
         "type": "object",
@@ -3163,6 +3083,150 @@
           }
         },
         "description": "A single page is used to envelope a small sequence that does not require\npagination\n\nIf total >  MAXIMUM_NUMBER_OF_ITEMS_PER_PAGE, we should consider extending this\nentrypoint to proper pagination"
+      },
+      "Page_File_": {
+        "title": "Page[File]",
+        "required": [
+          "items",
+          "total",
+          "links"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "title": "Items",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/File"
+            }
+          },
+          "total": {
+            "title": "Total",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "limit": {
+            "title": "Limit",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "links": {
+            "$ref": "#/components/schemas/Links"
+          }
+        }
+      },
+      "Page_Job_": {
+        "title": "Page[Job]",
+        "required": [
+          "items",
+          "total",
+          "links"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "title": "Items",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Job"
+            }
+          },
+          "total": {
+            "title": "Total",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "limit": {
+            "title": "Limit",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "links": {
+            "$ref": "#/components/schemas/Links"
+          }
+        }
+      },
+      "Page_Solver_": {
+        "title": "Page[Solver]",
+        "required": [
+          "items",
+          "total",
+          "links"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "title": "Items",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Solver"
+            }
+          },
+          "total": {
+            "title": "Total",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "limit": {
+            "title": "Limit",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "links": {
+            "$ref": "#/components/schemas/Links"
+          }
+        }
+      },
+      "Page_Study_": {
+        "title": "Page[Study]",
+        "required": [
+          "items",
+          "total",
+          "links"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "title": "Items",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Study"
+            }
+          },
+          "total": {
+            "title": "Total",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "limit": {
+            "title": "Limit",
+            "minimum": 1,
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "links": {
+            "$ref": "#/components/schemas/Links"
+          }
+        }
       },
       "Profile": {
         "title": "Profile",
@@ -3359,6 +3423,14 @@
             "title": "Uid",
             "type": "string",
             "format": "uuid"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "description": {
+            "title": "Description",
+            "type": "string"
           }
         }
       },
