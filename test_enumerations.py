@@ -20,19 +20,16 @@ def test_equivalent_enums_are_not_strictly_equal():
     assert to_dict(Color1) == to_dict(Color2)
 
 
-@unique
-class SomeEnum(enum.Enum):
-    REGISTRATION = "REGISTRATION"
-    INVITATION = "INVITATION"
-
-
-@unique
-class SomeStrAndEnum(str, enum.Enum):
-    REGISTRATION = "REGISTRATION"
-    INVITATION = "INVITATION"
-
-
 def test_inherits_from_str_and_enum():
+    @unique
+    class SomeEnum(enum.Enum):
+        REGISTRATION = "REGISTRATION"
+        INVITATION = "INVITATION"
+
+    @unique
+    class SomeStrAndEnum(str, enum.Enum):
+        REGISTRATION = "REGISTRATION"
+        INVITATION = "INVITATION"
 
     # here are the differences
     assert f"{SomeEnum.REGISTRATION}" == "SomeEnum.REGISTRATION"
@@ -51,19 +48,17 @@ def test_inherits_from_str_and_enum():
     assert SomeStrAndEnum.REGISTRATION.value == "REGISTRATION"
 
 
-class AutoName(str, Enum):
-    def _generate_next_value_(name, start, count, last_values):
-        return name
-
-
-class Ordinal(AutoName):
-    NORTH = auto()
-    SOUTH = auto()
-    EAST = auto()
-    WEST = auto()
-
-
 def test_autoname():
+    class AutoName(str, Enum):
+        def _generate_next_value_(name, start, count, last_values):
+            return name
+
+    class Ordinal(AutoName):
+        NORTH = auto()
+        SOUTH = auto()
+        EAST = auto()
+        WEST = auto()
+
     assert list(f"{n}" for n in Ordinal) == [
         "NORTH",
         "SOUTH",
