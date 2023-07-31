@@ -2,15 +2,21 @@ import enum
 from enum import Enum, auto, unique
 from typing import Any
 
+import pytest
+from pydantic import BaseModel, ValidationError, parse_obj_as
+
+
+class Color1(Enum):
+    RED = "RED"
+    BLUE = "BLUE"
+
+
+class Color2(Enum):
+    RED = "RED"
+    BLUE = "BLUE"
+
 
 def test_equivalent_enums_are_not_strictly_equal():
-    class Color1(Enum):
-        RED = "RED"
-        BLUE = "BLUE"
-
-    class Color2(Enum):
-        RED = "RED"
-        BLUE = "BLUE"
 
     assert Color1 != Color2
 
@@ -18,6 +24,60 @@ def test_equivalent_enums_are_not_strictly_equal():
         return {m.name: m.value for m in enum_cls}
 
     assert to_dict(Color1) == to_dict(Color2)
+
+
+class ColorStrAndEnum1(str, Enum):
+    RED = "RED"
+    BLUE = "BLUE"
+
+
+class ColorStrAndEnum2(str, Enum):
+    RED = "RED"
+    BLUE = "BLUE"
+
+
+def test_equivalent_enums_in_pydantic():
+    class Model(BaseModel):
+        color: Color1
+
+    model = parse_obj_as(Model, {"color": Color1.RED})
+    assert model.color == Color1.RED
+
+    # Can parse from string
+    model = parse_obj_as(Model, {"color": "RED"})
+    assert model.color == Color1.RED
+
+    # Can NOT parse from equilalent enum
+    with pytest.raises(ValidationError):
+        parse_obj_as(Model, {"color": Color2.RED})
+
+    #
+    # Using str-enums allow you to parse from equivalent enums!
+    #
+
+    class ModelStrAndEnum(BaseModel):
+        color: ColorStrAndEnum1
+
+    model = parse_obj_as(ModelStrAndEnum, {"color": ColorStrAndEnum1.RED})
+    assert model.color == ColorStrAndEnum1.RED
+
+    # Can parse from string
+    model = parse_obj_as(ModelStrAndEnum, {"color": "RED"})
+    assert model.color == ColorStrAndEnum1.RED
+
+    # Can parse other equivalent str-enum!
+    parse_obj_as(ModelStrAndEnum, {"color": ColorStrAndEnum2.RED})
+
+    # Can still NOT parse equilalent enum(-only)
+    with pytest.raises(ValidationError):
+        parse_obj_as(ModelStrAndEnum, {"color": Color1.RED})
+
+    # And the opposite? NO
+    with pytest.raises(ValidationError):
+        parse_obj_as(Color1, {"color": ColorStrAndEnum1.RED})
+
+    with pytest.raises(ValidationError):
+        parse_obj_as(Color1, {"color": ColorStrAndEnum2.RED})
 
 
 def test_inherits_from_str_and_enum():
