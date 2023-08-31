@@ -4,7 +4,7 @@ faker
 isort
 mypy
 pre-commit
-pydantic
+pydantic < 2
 pylint
 pytest
 pytest-asyncio
