@@ -1,17 +1,15 @@
 # https://fastapi.tiangolo.com/advanced/custom-response/#streamingresponse
 
-import pdb
-from fastapi import FastAPI
-from fastapi.responses import StreamingResponse, FileResponse
-import httpx
-import aiofiles
-from starlette.requests import Request
-from starlette.responses import RedirectResponse
-import tempfile
 import os
 from mimetypes import guess_type
-from fastapi import UploadFile, File
+from pathlib import Path
+
 import aiofiles
+import httpx
+from fastapi import FastAPI, File, UploadFile
+from fastapi.responses import FileResponse, StreamingResponse
+from starlette.requests import Request
+from starlette.responses import RedirectResponse
 
 app = FastAPI()
 
@@ -32,8 +30,6 @@ async def stream():
     return StreamingResponse(iter_stream(), media_type="application/octet-stream")
 
 
-from pathlib import Path
-
 data_folder = Path(__file__).resolve().parent.parent / "ignore"
 data_folder.mkdir(exist_ok=True, parents=True)
 
@@ -53,7 +49,6 @@ async def upload(file: UploadFile = File(...)):
 
 @app.get("/download")
 async def download():
-
     # 1 GB = 10^9 B. 1 GiB = 2^30 B
     # with tempfile.TemporaryFile()
     # file_size = 2**20
@@ -104,7 +99,6 @@ async def redirect_to_download(request: Request):
     response_class=FileResponse,
 )
 async def redirect_to_upload(request: Request, file: UploadFile = File(...)):
-
     return RedirectResponse(request.url_for("upload"))
 
     # attach download stream to the streamed response
