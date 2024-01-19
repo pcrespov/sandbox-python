@@ -24,7 +24,7 @@ def fun5():
 def test_logging_errors():
     try:
         x = fun5()
-    except KeyError:
+    except KeyError as err:
 
         logger.warning("Error in fun 5 as warning with exc_info", exc_info=True)
         logger.exception("Error in fun 5 as exception")
