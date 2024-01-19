@@ -1,10 +1,10 @@
-
 from datetime import datetime
 from typing import Optional
 
 import pytest
 from pydantic import BaseModel, ValidationError, validator
-from pydantic.dataclasses import dataclass
+
+from pydantic import constr
 
 
 def test_always():
@@ -55,7 +55,6 @@ def test_validate_assignments():
         name: str = "John Doe"
         signup_ts: datetime = None
 
-
     user = User(id="42", signup_ts="2032-06-21T12:00")
 
     with pytest.raises(ValidationError) as err_info:
@@ -67,9 +66,13 @@ def test_validate_assignments():
     error = err_info.value.errors()[0]
     print(error)
     assert error["loc"] == ("name",)
-    assert error["type"] == "value_error.any_str.max_length" # see 'code' and 'msg_template' in pydantic.errors:AnyStrMinLengthError
+    assert (
+        error["type"] == "value_error.any_str.max_length"
+    )  # see 'code' and 'msg_template' in pydantic.errors:AnyStrMinLengthError
     assert error["msg"] == "max_length:10"
-    assert "ctx" in error, "thisone is optional but will be included because the error is defined"
+    assert (
+        "ctx" in error
+    ), "thisone is optional but will be included because the error is defined"
     assert error["ctx"] == {"limit_value": 10}
 
     """
@@ -77,3 +80,37 @@ def test_validate_assignments():
     name
     max_length:10 (type=value_error.any_str.max_length; limit_value=10)
     """
+
+
+def test_strip_spaces():
+    class Foo(BaseModel):
+        my_str: str
+
+        class Config:
+            # it's like if ALL str are instead `constr(strip_whitespace=True)`
+            anystr_strip_whitespace = True
+
+        @validator("my_str", pre=True)
+        @classmethod
+        def _pre_validator(cls, v):
+            # test DOES NOT HAPPEN at pre-validation
+            assert v != v.strip()
+            return v
+
+        @validator("my_str")
+        @classmethod
+        def _post_validator(cls, v):
+            # test that ALREADY stripped!
+            assert v == v.strip()
+            return v
+
+    foo = Foo(my_str="  xxx  ")
+    assert foo.my_str == "xxx"
+
+    class Bar(BaseModel):
+        my_str: constr(strip_whitespace=True)
+
+
+    foo = Bar(my_str="  xxx  ")
+    assert foo.my_str == "xxx"
+
