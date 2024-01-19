@@ -17,18 +17,22 @@ class ExceptionFinder(ast.NodeVisitor):
         self.current_function = None
         self.functions = {}
         self.function_calls = {}
+        self.handled_exceptions = set()  # Exceptions that are caught and handled
         self.propagated_exceptions = set()  # Exceptions that are caught but not handled (re-raised)
 
     def visit_FunctionDef(self, node):
         self.current_function = node.name
         self.functions[self.current_function] = set()
         self.function_calls[self.current_function] = set()
+        self.handled_exceptions = set()  # Reset for each function
         self.propagated_exceptions = set()  # Reset for each function
         self.generic_visit(node)
         # Propagate exceptions from called functions
         for called_func in self.function_calls[self.current_function]:
             if called_func in self.functions:
-                self.functions[self.current_function].update(self.functions[called_func])
+                self.functions[self.current_function].update(
+                    self.functions[called_func] - self.handled_exceptions
+                )
         self.functions[self.current_function].update(self.propagated_exceptions)
         self.current_function = None
 
@@ -66,6 +70,9 @@ class ExceptionFinder(ast.NodeVisitor):
                 caught_exception = handler.name if handler.name else handler.type.id
                 self.propagated_exceptions.add(caught_exception)
             else:
+                # If the handler has a body, the exception is considered handled
+                handled_exception = handler.name if handler.name else handler.type.id
+                self.handled_exceptions.add(handled_exception)
                 self.generic_visit(handler)
 
         # Visit orelse part
