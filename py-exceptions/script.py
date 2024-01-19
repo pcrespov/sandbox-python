@@ -10,4 +10,15 @@ def bar():
 
 
 def main():
-    bar()
+    try:
+        bar()
+    except ValueError:
+        ...
+
+
+# `python parse_exceptions.py script.py`
+#
+# Function 'foo' may raise the following exceptions: ValueError
+# Function 'bar' may raise the following exceptions: None
+# Function 'main' may raise the following exceptions: None
+
