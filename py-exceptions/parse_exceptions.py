@@ -16,13 +16,19 @@ class ExceptionFinder(ast.NodeVisitor):
     def __init__(self):
         self.current_function = None
         self.functions = {}
+        self.function_calls = {}
         self.propagated_exceptions = set()  # Exceptions that are caught but not handled (re-raised)
 
     def visit_FunctionDef(self, node):
         self.current_function = node.name
         self.functions[self.current_function] = set()
+        self.function_calls[self.current_function] = set()
         self.propagated_exceptions = set()  # Reset for each function
         self.generic_visit(node)
+        # Propagate exceptions from called functions
+        for called_func in self.function_calls[self.current_function]:
+            if called_func in self.functions:
+                self.functions[self.current_function].update(self.functions[called_func])
         self.functions[self.current_function].update(self.propagated_exceptions)
         self.current_function = None
 
@@ -43,6 +49,8 @@ class ExceptionFinder(ast.NodeVisitor):
     def visit_Call(self, node):
         if self.current_function and isinstance(node.func, ast.Name):
             func_name = node.func.id
+            # Record the function call
+            self.function_calls[self.current_function].add(func_name)
             if func_name in known_exceptions:
                 self.functions[self.current_function].update(known_exceptions[func_name])
         self.generic_visit(node)
