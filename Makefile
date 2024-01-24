@@ -17,6 +17,7 @@ devenv: .venv ## create a python virtual environment with dev tools (e.g. linter
 	$</bin/pip3 install -r requirements.txt
 	# Installing pre-commit hooks in current .git repo
 	@$</bin/pre-commit install
+	@pip list -v
 	@echo "To activate the venv, execute 'source .venv/bin/activate'"
 
 
