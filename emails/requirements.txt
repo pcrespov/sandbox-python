@@ -1,0 +1,2 @@
+aiosmtplib
+Jinja2
