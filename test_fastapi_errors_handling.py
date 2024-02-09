@@ -8,9 +8,11 @@ from typing import Any
 import pytest
 from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
 from pydantic import BaseModel, Field
+from toolz.dicttoolz import get_in
 
 
 class UnicornException(Exception):
@@ -18,10 +20,9 @@ class UnicornException(Exception):
         self.name = name
 
 
-class ErrorModel(BaseModel):
-    name: str = Field(..., description="Standarized error name/code")
+class ResponseErrorModel(BaseModel):
+    name: str | None = Field(None, description="Error code to completent status code")
     detail: Any | None = Field(None, description="Further details on the error")
-    message: str = Field(..., description="Human readable error message")
 
 
 #
@@ -36,21 +37,35 @@ async def unicorn_exception_handler(request: Request, exc: UnicornException):
     )
 
 
-async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
-    error = ErrorModel(
-        name=f"{exc.status_code}",
-        message=exc.headers.get("X-Message")
-        or http.HTTPStatus(exc.status_code).description,
-        detail=exc.detail,
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    # the idea here is to return in `got` the value that failed
+    detail = []
+    for err in exc.errors():
+        match err["loc"][0]:
+            case "body":
+                err["got"] = get_in(err["loc"][1:], request.body)
+            case "query":
+                err["got"] = request.query_params[err["loc"][1]]
+            case "path":
+                err["got"] = request.path_params[err["loc"][1]]
+        detail.append(err)
+
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content=jsonable_encoder({"detail": detail}, exclude_none=True),
     )
-    return JSONResponse(jsonable_encoder(error), status_code=exc.status_code)
+
+
+class Item(BaseModel):
+    title: str
+    size: int
 
 
 app = FastAPI()
 
 # register them in the app
-app.add_exception_handler(HTTPException, http_exception_handler)
-app.add_event_handler(UnicornException, unicorn_exception_handler)
+app.add_exception_handler(UnicornException, unicorn_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
 
 
 @app.get("/error")
@@ -78,6 +93,82 @@ async def read_unicorn(name: str):
     return {"unicorn_name": name}
 
 
+@app.post("/items/")
+async def create_item(item: Item, q: int | None = None):
+    return item
+
+
+@app.get("/items/{item_id}")
+async def read_item(item_id: int):
+    if item_id == 3:
+        raise HTTPException(
+            status_code=status.HTTP_418_IM_A_TEAPOT, detail="Nope! I don't like 3."
+        )
+    return {"item_id": item_id}
+
+
+def test_validation_exception_handler_with_body_info():
+    with TestClient(app) as client:
+        response = client.get("/items/3")
+        assert response.status_code == status.HTTP_418_IM_A_TEAPOT
+
+        response = client.get("/items/fooo")
+        error = response.json()
+
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        assert error["detail"][0] == {
+            "got": "fooo",
+            "loc": ["path", "item_id"],
+            "msg": "value is not a valid integer",
+            "type": "type_error.integer",
+        }
+        assert error.get("body") is None
+
+        # cannot process one or more parts of the request
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+        # how many?
+        assert len(error["detail"]) == 1
+
+        # path, query or body?
+        assert get_in(["detail", 0, "loc", 0], error) == "path"
+
+        # which parameter?
+        assert get_in(["detail", 0, "loc", 1], error)
+
+        # what type of error and what happen?
+        assert get_in(["detail", 0, "type"], error)
+        assert get_in(["detail", 0, "msg"], error)
+
+        #
+        response = client.post("/items/", json={"size": 33}, params={"q": "wrong"})
+        error = response.json()
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+        # how many?
+        assert len(error["detail"]) == 2
+
+        # path, query or body?
+        for err in error["detail"]:
+
+            match err["loc"][0]:
+                case "body":
+                    assert err == {
+                        "loc": ["body", "title"],
+                        "msg": "field required",
+                        "type": "value_error.missing",
+                    }
+                case "query":
+                    assert err == {
+                        "loc": ["query", "q"],
+                        "msg": "value is not a valid integer",
+                        "type": "type_error.integer",
+                        "got": "wrong",
+                    }
+                case _:
+                    assert False
+
+
 def test_handling_unicorn_exception():
     with TestClient(app) as client:
         response = client.get("/unicorns/yolo")
@@ -91,6 +182,6 @@ def test_handling_http_exception_raised(code: int):
         response = client.get(f"/code/{code}")
 
         assert response.status_code == code
-        model = ErrorModel(**response.json())
+        model = ResponseErrorModel(**response.json())
 
         assert model.name == f"{code}"

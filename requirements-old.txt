@@ -1,0 +1,11 @@
+black
+faker
+fastapi
+isort
+mypy
+pre-commit
+pydantic<2
+pylint
+pytest
+pytest-asyncio
+pytest-benchmark
