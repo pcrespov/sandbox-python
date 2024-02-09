@@ -3,7 +3,7 @@
 #
 
 import http
-from typing import Any
+from typing import Any, Iterator
 
 import pytest
 from fastapi import FastAPI, HTTPException, Request, status
@@ -108,81 +108,103 @@ async def read_item(item_id: int):
     return {"item_id": item_id}
 
 
+######################
+
+
+@pytest.fixture
+def client() -> Iterator[TestClient]:
+    with TestClient(app) as _client:
+        yield _client
+
+
 @pytest.mark.skip
-def test_validation_exception_handler_with_body_info():
-    with TestClient(app) as client:
-        response = client.get("/items/3")
-        assert response.status_code == status.HTTP_418_IM_A_TEAPOT
+def test_validation_exception_handler_with_body_info(client: TestClient):
 
-        response = client.get("/items/fooo")
-        error = response.json()
+    response = client.get("/items/3")
+    assert response.status_code == status.HTTP_418_IM_A_TEAPOT
 
-        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-        assert error["detail"][0] == {
-            "got": "fooo",
-            "loc": ["path", "item_id"],
-            "msg": "value is not a valid integer",
-            "type": "type_error.integer",
-        }
-        assert error.get("body") is None
+    response = client.get("/items/fooo")
+    error = response.json()
 
-        # cannot process one or more parts of the request
-        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    assert error["detail"][0] == {
+        "got": "fooo",
+        "loc": ["path", "item_id"],
+        "msg": "value is not a valid integer",
+        "type": "type_error.integer",
+    }
+    assert error.get("body") is None
 
-        # how many?
-        assert len(error["detail"]) == 1
+    # cannot process one or more parts of the request
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
-        # path, query or body?
-        assert get_in(["detail", 0, "loc", 0], error) == "path"
+    # how many?
+    assert len(error["detail"]) == 1
 
-        # which parameter?
-        assert get_in(["detail", 0, "loc", 1], error)
+    # path, query or body?
+    assert get_in(["detail", 0, "loc", 0], error) == "path"
 
-        # what type of error and what happen?
-        assert get_in(["detail", 0, "type"], error)
-        assert get_in(["detail", 0, "msg"], error)
+    # which parameter?
+    assert get_in(["detail", 0, "loc", 1], error)
 
-        #
-        response = client.post("/items/", json={"size": 33}, params={"q": "wrong"})
-        error = response.json()
-        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-
-        # how many?
-        assert len(error["detail"]) == 2
-
-        # path, query or body?
-        for err in error["detail"]:
-
-            match err["loc"][0]:
-                case "body":
-                    assert err == {
-                        "loc": ["body", "title"],
-                        "msg": "field required",
-                        "type": "value_error.missing",
-                    }
-                case "query":
-                    assert err == {
-                        "loc": ["query", "q"],
-                        "msg": "value is not a valid integer",
-                        "type": "type_error.integer",
-                        "got": "wrong",
-                    }
-                case _:
-                    assert False
+    # what type of error and what happen?
+    assert get_in(["detail", 0, "type"], error)
+    assert get_in(["detail", 0, "msg"], error)
 
 
-def test_it():
-    with TestClient(app) as client:
-        response = client.post("/items/", json="not_json")
-        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+def test_multiple_errors(client: TestClient):
+    response = client.post("/items/", json={"size": 33}, params={"q": "wrong"})
+    error = response.json()
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
-        error = response.json()
-        assert get_in(["detail", 0, "loc", "body"], error) == {
-            "loc": ["body"],
-            "msg": "value is not a valid dict",
-            "type": "type_error.dict",
-            "got": "not_json",
-        }
+    # how many?
+    assert len(error["detail"]) == 2
+
+    # path, query or body?
+    for err in error["detail"]:
+        match err["loc"][0]:
+            case "body":
+                assert err == {
+                    "loc": ["body", "title"],
+                    "msg": "field required",
+                    "type": "value_error.missing",
+                }
+            case "query":
+                assert err == {
+                    "loc": ["query", "q"],
+                    "msg": "value is not a valid integer",
+                    "type": "type_error.integer",
+                    "got": "wrong",
+                }
+            case _:
+                assert False, f"{err}"
+
+
+def test_type_error_in_body(client: TestClient):
+    response = client.post("/items/", json="not_json")
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+    error = response.json()
+    assert len(error["detail"]) == 1
+    assert get_in(["detail", 0], error) == {
+        "loc": ["body"],
+        "msg": "value is not a valid dict",
+        "type": "type_error.dict",
+        "got": "not_json",
+    }
+
+
+def test_missing_body(client: TestClient):
+    response = client.post("/items/")
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+    error = response.json()
+    assert len(error["detail"]) == 1
+    assert get_in(["detail", 0], error) == {
+        "loc": ["body"],
+        "msg": "field required",
+        "type": "value_error.missing",
+    }
 
 
 def test_handling_unicorn_exception():
