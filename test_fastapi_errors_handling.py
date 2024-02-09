@@ -11,7 +11,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.testclient import TestClient
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, parse_obj_as
 from toolz.dicttoolz import get_in
 
 
@@ -37,19 +37,40 @@ async def unicorn_exception_handler(request: Request, exc: UnicornException):
     )
 
 
+LocTuple = tuple[int | str, ...]
+
+app_scope_errors = {}
+
+
+class DetailModel(BaseModel):
+    loc: LocTuple
+    msg: str
+    type: str
+
+
+app_scope_errors[status.HTTP_422_UNPROCESSABLE_ENTITY] = {
+    "model": DetailModel,
+    "description": "Request validation error",
+}
+
+
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    # the idea here is to return in `got` the value that failed or nothing if e.g. it was missing
+    # the idea here is to return in `input` the value that failed or nothing if e.g. it was missing
     detail = []
     for err in exc.errors():
-        _param, *_path = err["loc"]
+        _param, *_pos = err["loc"]
         match _param:
             case "body":
-                err["got"] = get_in(_path, exc.body)
+                err["input"] = get_in(_pos, exc.body)
             case "query":
-                err["got"] = get_in(_path, request.query_params)
+                err["input"] = get_in(_pos, request.query_params)
             case "path":
-                err["got"] = get_in(_path, request.path_params)
+                err["input"] = get_in(_pos, request.path_params)
         detail.append(err)
+
+    assert parse_obj_as(list[DetailModel], detail)  # nosec
+
+    # NOTE: one could reconstruct an exception
 
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -69,7 +90,10 @@ app.add_exception_handler(UnicornException, unicorn_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
 
 
-@app.get("/error")
+@app.get(
+    "/error",
+    responses={**app_scope_errors, status.HTTP_409_CONFLICT: {"description": "??"}},
+)
 async def _fail():
     raise HTTPException(
         status_code=status.HTTP_409_CONFLICT,
@@ -128,7 +152,7 @@ def test_validation_exception_handler_with_body_info(client: TestClient):
 
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
     assert error["detail"][0] == {
-        "got": "fooo",
+        "input": "fooo",
         "loc": ["path", "item_id"],
         "msg": "value is not a valid integer",
         "type": "type_error.integer",
@@ -174,7 +198,7 @@ def test_multiple_errors(client: TestClient):
                     "loc": ["query", "q"],
                     "msg": "value is not a valid integer",
                     "type": "type_error.integer",
-                    "got": "wrong",
+                    "input": "wrong",
                 }
             case _:
                 assert False, f"{err}"
@@ -190,7 +214,7 @@ def test_type_error_in_body(client: TestClient):
         "loc": ["body"],
         "msg": "value is not a valid dict",
         "type": "type_error.dict",
-        "got": "not_json",
+        "input": "not_json",
     }
 
 
