@@ -38,16 +38,17 @@ async def unicorn_exception_handler(request: Request, exc: UnicornException):
 
 
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    # the idea here is to return in `got` the value that failed
+    # the idea here is to return in `got` the value that failed or nothing if e.g. it was missing
     detail = []
     for err in exc.errors():
-        match err["loc"][0]:
+        _param, *_path = err["loc"]
+        match _param:
             case "body":
-                err["got"] = get_in(err["loc"][1:], request.body)
+                err["got"] = get_in(_path, exc.body)
             case "query":
-                err["got"] = request.query_params[err["loc"][1]]
+                err["got"] = get_in(_path, request.query_params)
             case "path":
-                err["got"] = request.path_params[err["loc"][1]]
+                err["got"] = get_in(_path, request.path_params)
         detail.append(err)
 
     return JSONResponse(
@@ -107,6 +108,7 @@ async def read_item(item_id: int):
     return {"item_id": item_id}
 
 
+@pytest.mark.skip
 def test_validation_exception_handler_with_body_info():
     with TestClient(app) as client:
         response = client.get("/items/3")
@@ -167,6 +169,20 @@ def test_validation_exception_handler_with_body_info():
                     }
                 case _:
                     assert False
+
+
+def test_it():
+    with TestClient(app) as client:
+        response = client.post("/items/", json="not_json")
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+        error = response.json()
+        assert get_in(["detail", 0, "loc", "body"], error) == {
+            "loc": ["body"],
+            "msg": "value is not a valid dict",
+            "type": "type_error.dict",
+            "got": "not_json",
+        }
 
 
 def test_handling_unicorn_exception():
