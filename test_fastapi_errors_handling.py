@@ -39,7 +39,7 @@ async def unicorn_exception_handler(request: Request, exc: UnicornException):
 
 LocTuple = tuple[int | str, ...]
 
-app_scope_errors = {}
+app_scope_error_responses = {}
 
 
 class DetailModel(BaseModel):
@@ -48,7 +48,7 @@ class DetailModel(BaseModel):
     type: str
 
 
-app_scope_errors[status.HTTP_422_UNPROCESSABLE_ENTITY] = {
+app_scope_error_responses[status.HTTP_422_UNPROCESSABLE_ENTITY] = {
     "model": DetailModel,
     "description": "Request validation error",
 }
@@ -92,7 +92,10 @@ app.add_exception_handler(RequestValidationError, validation_exception_handler)
 
 @app.get(
     "/error",
-    responses={**app_scope_errors, status.HTTP_409_CONFLICT: {"description": "??"}},
+    responses={
+        **app_scope_error_responses,
+        status.HTTP_409_CONFLICT: {"description": "??"},
+    },
 )
 async def _fail():
     raise HTTPException(
