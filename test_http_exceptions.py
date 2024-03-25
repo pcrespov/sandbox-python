@@ -9,7 +9,6 @@ import pytest
 from aiohttp import web
 from aiohttp.test_utils import TestClient
 from pydantic import BaseModel, SecretStr, ValidationError, conint
-from pydantic.error_wrappers import ErrorDict
 from pydantic.errors import PydanticErrorMixin
 from pydantic.json import pydantic_encoder
 
@@ -292,28 +291,61 @@ def test_aiohttp_exceptions():
     assert str(exc) == exc.reason
 
 
-def test_custom_exceptions_and_mapping_to_aiohttp_exception():
-    class MyThingNotFoundError(PydanticErrorMixin, ValueError):
-        msg_template = "This is my error {value}"
-        code = "ValueError.MyError"
+class MyThingNotFoundError(PydanticErrorMixin, ValueError):
+    msg_template = "This is my error {value}"
+    code = "ValueError.MyThingNotFoundError"
 
-    try:
-        raise MyThingNotFoundError(value="thing", other="other")
 
-    except MyThingNotFoundError as err:
-        # error_dict(exc=err, loc=[])
-        # NOTE: remove loc!
-        msg = str(err)
-        error: ErrorDict = {"type": err.code, "msg": msg, "loc": []}
-        if ctx := err.__dict__:
-            error["ctx"] = ctx
+@pytest.fixture
+def client3(
+    event_loop: asyncio.AbstractEventLoop,
+    aiohttp_client: Callable,
+    unused_tcp_port_factory: Callable,
+):
+    async def _hnd(request: web.Request):
+        try:
+            raise MyThingNotFoundError(value="thing", other=3)
 
-        # NOTE: err has been lost
-        http_error = web.HTTPNotFound(
-            reason=msg,
-            text=json.dumps({"error": error}),
-            content_type="application/json",
-        )
+        except MyThingNotFoundError as err:
+            # -> error_dict(exc=err, loc=[])
+            # NOTE: remove loc!
+            msg = str(err)
+            error = {"type": err.code, "msg": msg}
+            if ctx := err.__dict__:
+                error["ctx"] = ctx
 
-        assert http_error.status == 404
-        assert http_error.reason == msg
+            # NOTE: err has been lost
+            envelope = {"error": error}
+            http_error = web.HTTPNotFound(
+                reason=msg,
+                text=json.dumps(envelope),
+                content_type="application/json",
+            )
+
+            assert http_error.status == 404
+            assert http_error.reason == msg
+
+            raise http_error from err
+
+    app = web.Application()
+    app.add_routes(
+        [
+            web.get("/go", _hnd),
+        ]
+    )
+
+    return event_loop.run_until_complete(
+        aiohttp_client(app, server_kwargs={"port": unused_tcp_port_factory()})
+    )
+
+
+async def test_custom_exceptions_and_mapping_to_aiohttp_exception(client3: TestClient):
+
+    response = await client3.get("/go")
+    assert response.status == web.HTTPNotFound.status_code
+
+    error = (await response.json())["error"]
+    print(error)
+    assert error["msg"]
+    assert "ValueError" in error["type"]
+    assert error["ctx"] == {"other": 3, "value": "thing"}
