@@ -9,6 +9,8 @@ import pytest
 from aiohttp import web
 from aiohttp.test_utils import TestClient
 from pydantic import BaseModel, SecretStr, ValidationError, conint
+from pydantic.error_wrappers import ErrorDict
+from pydantic.errors import PydanticErrorMixin
 from pydantic.json import pydantic_encoder
 
 
@@ -288,3 +290,30 @@ def test_aiohttp_exceptions():
     assert exc.status == 200
     assert exc.reason == HTTPStatus(200).phrase
     assert str(exc) == exc.reason
+
+
+def test_custom_exceptions_and_mapping_to_aiohttp_exception():
+    class MyThingNotFoundError(PydanticErrorMixin, ValueError):
+        msg_template = "This is my error {value}"
+        code = "ValueError.MyError"
+
+    try:
+        raise MyThingNotFoundError(value="thing", other="other")
+
+    except MyThingNotFoundError as err:
+        # error_dict(exc=err, loc=[])
+        # NOTE: remove loc!
+        msg = str(err)
+        error: ErrorDict = {"type": err.code, "msg": msg, "loc": []}
+        if ctx := err.__dict__:
+            error["ctx"] = ctx
+
+        # NOTE: err has been lost
+        http_error = web.HTTPNotFound(
+            reason=msg,
+            text=json.dumps({"error": error}),
+            content_type="application/json",
+        )
+
+        assert http_error.status == 404
+        assert http_error.reason == msg
