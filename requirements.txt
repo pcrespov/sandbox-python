@@ -8,3 +8,4 @@ pylint
 pytest
 pytest-aiohttp
 pytest-benchmark
+pydantic<2
