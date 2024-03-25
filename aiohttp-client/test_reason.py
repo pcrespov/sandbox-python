@@ -111,6 +111,9 @@ async def test_raise_http_responses(client: TestClient, code: int):
 
     text = await response.text()
     if response.content_length:
+        assert not http_exception_cls_map[code].empty_body
+        assert text
+
         assert response.content_type == "text/plain"
         if code != web.HTTPRequestEntityTooLarge.status_code:  # 413
             assert text == f"{response.status}: {response.reason}"
