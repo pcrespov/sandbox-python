@@ -28,6 +28,31 @@ http_exception_cls_map = {
 }
 
 
+def _get_http_response(request: web.Request, code: int):
+    http_exception_cls = http_exception_cls_map[code]
+    match code:
+        case 300 | 301 | 302 | 303 | 305 | 307 | 308:
+            http_response = http_exception_cls(
+                location="https://httpbin.org/"
+            )  # headers["Location"]
+            # for 3XX the problem is that it redirects and the response is the redirection
+        case web.HTTPMethodNotAllowed.status_code:
+            http_response = web.HTTPMethodNotAllowed(
+                method=request.method, allowed_methods=["FOO"]
+            )  # header["Allow"] = "POST,GET"
+        case web.HTTPRequestEntityTooLarge.status_code:
+            http_response = web.HTTPRequestEntityTooLarge(
+                max_size=10, actual_size=23
+            )  # text
+        case web.HTTPUnavailableForLegalReasons.status_code:
+            http_response = web.HTTPUnavailableForLegalReasons(
+                link="https://httpbin.org/"
+            )  # headers["Link"]
+        case _:
+            http_response = http_exception_cls()
+    return http_response
+
+
 @pytest.fixture
 def client(
     event_loop: asyncio.AbstractEventLoop,
@@ -45,27 +70,21 @@ def client(
 
     async def _raise(request: web.Request):
         code = int(request.query["code"])
-        http_exception_cls = http_exception_cls_map[code]
-        match code:
-            case 300 | 301 | 302 | 303 | 305 | 307 | 308:
-                raise http_exception_cls(
-                    location="https://httpbin.org/"
-                )  # headers["Location"]
-            case web.HTTPMethodNotAllowed.status_code:
-                raise web.HTTPMethodNotAllowed(
-                    method=request.method, allowed_methods=["FOO"]
-                )  # header["Allow"] = "POST,GET"
-            case web.HTTPRequestEntityTooLarge.status_code:
-                raise web.HTTPRequestEntityTooLarge(max_size=10, actual_size=23)  # text
-            case web.HTTPUnavailableForLegalReasons.status_code:
-                raise web.HTTPUnavailableForLegalReasons(
-                    link="https://httpbin.org/"
-                )  # headers["Link"]
-            case _:
-                raise http_exception_cls()
+        http_response = _get_http_response(request, code)
+        raise http_response
+
+    async def _return(request: web.Request):
+        code = int(request.query["code"])
+        http_response = _get_http_response(request, code)
+        raise http_response
 
     app.add_routes(
-        [web.get("/ok", _ok), web.get("/error", _error), web.post("/raise", _raise)]
+        [
+            web.get("/ok", _ok),
+            web.get("/error", _error),
+            web.post("/raise", _raise),
+            web.post("/return", _return),
+        ]
     )
 
     return event_loop.run_until_complete(
@@ -102,9 +121,10 @@ async def test_reason_is_automatically_created(
     assert response.headers["Allow"] == "GET,HEAD"
 
 
+@pytest.mark.parametrize("path", ("/raise", "/return"))
 @pytest.mark.parametrize("code", http_exception_cls_map)
-async def test_raise_http_responses(client: TestClient, code: int):
-    response = await client.post("/raise", params={"code": code})
+async def test_raise_http_responses(client: TestClient, path: str, code: int):
+    response = await client.post(path, params={"code": code})
 
     assert response.status == code
     assert response.reason == HTTPStatus(response.status).phrase
