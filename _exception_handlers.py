@@ -4,7 +4,6 @@ from http import HTTPStatus
 from typing import Any, TypeAlias
 
 from aiohttp import web
-
 from typing_extensions import Handler
 
 ExceptionHandler: TypeAlias = Callable[
