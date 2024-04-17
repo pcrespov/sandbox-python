@@ -3,6 +3,7 @@
 # pylint: disable=unused-variable
 # pylint: disable=too-many-arguments
 
+# Uses requirements-old.txt
 
 from pathlib import Path
 from typing import Annotated, AsyncIterator
