@@ -1,6 +1,8 @@
+asgi_lifespan
 black
 faker
 fastapi
+httpx
 isort
 mypy
 pre-commit
@@ -9,3 +11,4 @@ pylint
 pytest
 pytest-asyncio
 pytest-benchmark
+python-multipart
