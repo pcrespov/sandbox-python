@@ -25,6 +25,8 @@ def mocked_service_api(faker: Faker, use_real_api: bool) -> Iterator[MockRouter]
 
         # SEE https://github.com/lundberg/respx/issues/95#issuecomment-721061582
         if use_real_api:
+            # FOR some reason pass_through(True) does not work as I expected!
+            # https://lundberg.github.io/respx/versions/0.14.0/api/#request-api
             respx_mock.stop()
         yield respx_mock
 
