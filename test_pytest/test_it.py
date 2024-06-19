@@ -1,4 +1,10 @@
 def test_it():
+    assert False
 
-    print("foo")
+
+def test_that():
+    assert True
+
+
+def test_also():
     assert False
