@@ -6,6 +6,7 @@ httpx
 isort
 mypy
 pre-commit
+# NOTE: use `import pydantic.v1`
 pydantic
 pydantic-settings
 pylint
