@@ -3,6 +3,19 @@ import os
 
 import pytest
 
+
+def pytest_addoption(parser):
+    """
+    Hook to add custom command-line options.
+    """
+    parser.addoption(
+        "--product-url",
+        action="store",
+        default="",
+        help="URL of the product to be tested",
+    )
+
+
 # Dictionary to store start times of tests
 _test_start_times = {}
 
@@ -50,11 +63,13 @@ def pytest_runtest_makereport(item, call):
         test_name = item.name
         test_location = item.location
         api_host = os.environ.get("OSPARC_API_HOST", "")
+        product_url = item.config.getoption("--product-url")
 
         diagnostics = {
             "test_name": test_name,
             "test_location": test_location,
             "api_host": api_host,
+            "product_url": product_url,
         }
 
         # Get the start and end times of the test

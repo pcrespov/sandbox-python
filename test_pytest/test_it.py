@@ -1,10 +1,20 @@
-def test_it():
-    assert False
+from contextlib import contextmanager
+
+import pytest
 
 
-def test_that():
-    assert True
+@contextmanager
+def context_42():
+    print("in")
+    yield 42
+    print("out")
 
 
-def test_also():
-    assert False
+@pytest.fixture
+def foo():
+    with context_42() as value:
+        yield value
+
+
+def test_it2(foo):
+    assert foo == 42
