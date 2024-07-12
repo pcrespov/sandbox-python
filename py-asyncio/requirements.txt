@@ -5,3 +5,4 @@ pytest-asyncio
 
 httpx
 async_timeout
+toolz
