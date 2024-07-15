@@ -18,7 +18,9 @@ logger = logging.getLogger(__name__)
 def check_file_and_execute(state, input3: Path):
 
     for attempt in Retrying(
-        wait=wait_fixed(state.check_interval), before=before_log(logger, logging.INFO)
+        wait=wait_fixed(state.check_interval),
+        before=before_log(logger, logging.INFO),
+        reraise=True,
     ):
         with attempt:
 
