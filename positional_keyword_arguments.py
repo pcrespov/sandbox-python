@@ -42,7 +42,7 @@ foo(
 
 
 def bar(
-    pos_only_no_default,  # Positional-only argument, no default
+    # pos_only_no_default,  # Positional-only argument, no default
     pos_only_with_default=None,  # Positional-only argument, with default
     /,  # All preceding are positional-only
     # pos_or_kwarg_no_default,     # Can be passed either positionally or as a keyword, no default NOT ALLOWED
@@ -55,7 +55,7 @@ def bar(
     A function demonstrating all combinations of positional-only, positional-or-keyword,
     and keyword-only arguments with and without default values.
     """
-    print(f"pos_only_no_default: {pos_only_no_default}")
+    # print(f"pos_only_no_default: {pos_only_no_default}")
     print(f"pos_only_with_default: {pos_only_with_default}")
     ## print(f"pos_or_kwarg_no_default: {pos_or_kwarg_no_default}")
     print(f"pos_or_kwarg_with_default: {pos_or_kwarg_with_default}")
