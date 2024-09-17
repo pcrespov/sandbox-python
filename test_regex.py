@@ -1,18 +1,20 @@
 import re
 
-# Regex pattern for host matching
-pattern = r"^(api\.tip-lite|tip-lite)"
+# Define the regex pattern
+pattern = r"^(testing\.)?tip\."
+# pattern = r"^(testing\.)?tip-lite[\.-]"
 
-# Example test
-urls = [
-    "tip-lite.example.com",
-    "api.tip-lite.example.com",
-    "somethingelse.example.com",
-    "tip-litesomething.example.com",
+# Test the pattern
+test_strings = [
+    "testing.osparc.somevalue",
+    "testing.tip.io",
+    "tip.com",
+    "osparc.somevalue",
+    "testing-somethingelse",
+    "osparc-testing",
 ]
 
-for url in urls:
-    if re.search(pattern, url):
-        print(f"Match found: {url}")
-    else:
-        print(f"No match: {url}")
+# Filter strings that match the pattern
+matches = [s for s in test_strings if re.match(pattern, s)]
+
+print(matches)
