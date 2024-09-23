@@ -2,6 +2,8 @@ import re
 
 # Define the regex pattern
 pattern = r"^(testing\.)?tip\."
+pattern = r"^(testing\.)?s4l[\.-]"
+
 # pattern = r"^(testing\.)?tip-lite[\.-]"
 
 # Test the pattern
