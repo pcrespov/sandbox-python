@@ -1,25 +1,26 @@
+from pathlib import Path
+
 import pytest
+import yaml
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import OperationalError
-from pathlib import Path
-import yaml
 
-
-params = yaml.safe_load( Path("params.yml").read_text() )
-assert params.get('databases')
-
-
+params = yaml.safe_load(Path("params.yml").read_text())
+assert params.get("databases")
 
 
 @pytest.mark.parametrize(
     "user, password, host, port, database",
     [
-        pytest.param(d['user'], d["password"], d['host'], d['port'], d['database'], id=['id']) for d in params["databases"]
-    ]
+        pytest.param(
+            d["user"], d["password"], d["host"], d["port"], d["database"], id=d["id"]
+        )
+        for d in params["databases"]
+    ],
 )
 def test_ping_database(user, password, host, port, database):
     database_url = f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{database}"
-    
+
     engine = create_engine(database_url, echo=True, connect_args={"connect_timeout": 2})
 
     try:
