@@ -1,11 +1,14 @@
+aiohttp
 black
 faker
 isort
 mypy
 pre-commit
-aiohttp
+psycopg2-binary
+pydantic<2
 pylint
 pytest
 pytest-aiohttp
 pytest-benchmark
-pydantic<2
+pyyaml
+sqlalchemy
