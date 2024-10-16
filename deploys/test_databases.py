@@ -27,11 +27,10 @@ def test_ping_database(user, password, host, port, database):
         # Establish connection and execute a simple query
         with engine.connect() as connection:
             result = connection.execute(text("SELECT 1"))
-            # Assert that the query returns 1
             assert result.scalar() == 1, "Database did not return expected result"
-        print(f"Ping to {database} succeeded.")
+
     except OperationalError as e:
         pytest.fail(f"Could not connect to the database {database}: {e}")
+
     finally:
-        # Dispose of the engine to close any remaining connections
         engine.dispose()
