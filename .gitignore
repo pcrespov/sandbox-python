@@ -113,7 +113,6 @@ cws/5/hello.tar
 cws/5/hello.txt
 cws/6/output.txt
 
-*ignore*
 samba-fs/share/*
 
 prefect-samples/sleepers-flow.json
@@ -124,3 +123,8 @@ prefect-tutorial/etl-flow.svg
 
 dask-worker-space
 dsk.svg
+
+
+
+*ignore*
+*secret*

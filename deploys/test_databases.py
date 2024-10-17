@@ -5,8 +5,7 @@ import yaml
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import OperationalError
 
-params = yaml.safe_load(Path("params.yml").read_text())
-assert params.get("databases")
+params = yaml.safe_load(Path("params.secrets.yml").read_text())
 
 
 @pytest.mark.parametrize(
