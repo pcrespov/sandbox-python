@@ -8,15 +8,32 @@ from sqlalchemy.exc import OperationalError
 
 # secrets aggregated from multiple deploys' repo.config files
 params_path = Path("param.secrets.yml").resolve()
+_skip_reason = f"{params_path} not present in cwd={params_path.parent}"
 try:
     params = yaml.safe_load(params_path.read_text())
 except FileNotFoundError:
     params = {}
 
 
-@pytest.mark.skipif(
-    not params, reason=f"{params_path} not present in cwd={params_path.parent}"
+@pytest.mark.skipif(not params, reason=_skip_reason)
+@pytest.mark.parametrize(
+    "host, port",
+    [
+        pytest.param(d["host"], d["port"], id=d["id"])
+        for d in params.get("databases", [])
+    ],
 )
+def test_database_tcp_reachability(host, port):
+    try:
+        # Establish a TCP connection to the host and port
+        with socket.create_connection((host, port), timeout=5) as sock:
+            assert sock is not None, f"Failed to connect to {host}:{port}"
+
+    except (socket.timeout, OSError) as e:
+        pytest.fail(f"Could not reach the database service at {host}:{port}: {e}")
+
+
+@pytest.mark.skipif(not params, reason=_skip_reason)
 @pytest.mark.parametrize(
     "user, password, host, port, database",
     [
@@ -42,20 +59,3 @@ def test_database_readiness(user, password, host, port, database):
 
     finally:
         engine.dispose()
-
-
-@pytest.mark.parametrize(
-    "host, port",
-    [
-        pytest.param(d["host"], d["port"], id=d["id"])
-        for d in params.get("databases", [])
-    ],
-)
-def test_database_tcp_reachability(host, port):
-    try:
-        # Establish a TCP connection to the host and port
-        with socket.create_connection((host, port), timeout=5) as sock:
-            assert sock is not None, f"Failed to connect to {host}:{port}"
-
-    except (socket.timeout, OSError) as e:
-        pytest.fail(f"Could not reach the database service at {host}:{port}: {e}")
