@@ -1,3 +1,4 @@
+import socket
 from pathlib import Path
 
 import pytest
@@ -28,7 +29,7 @@ except FileNotFoundError:
 def test_database_readiness(user, password, host, port, database):
     database_url = f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{database}"
 
-    engine = create_engine(database_url, echo=True, connect_args={"connect_timeout": 2})
+    engine = create_engine(database_url, echo=True, connect_args={"connect_timeout": 5})
 
     try:
         # Establish connection and execute a simple query
@@ -41,3 +42,20 @@ def test_database_readiness(user, password, host, port, database):
 
     finally:
         engine.dispose()
+
+
+@pytest.mark.parametrize(
+    "host, port",
+    [
+        pytest.param(d["host"], d["port"], id=d["id"])
+        for d in params.get("databases", [])
+    ],
+)
+def test_database_tcp_reachability(host, port):
+    try:
+        # Establish a TCP connection to the host and port
+        with socket.create_connection((host, port), timeout=5) as sock:
+            assert sock is not None, f"Failed to connect to {host}:{port}"
+
+    except (socket.timeout, OSError) as e:
+        pytest.fail(f"Could not reach the database service at {host}:{port}: {e}")
