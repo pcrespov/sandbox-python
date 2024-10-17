@@ -5,19 +5,27 @@ import yaml
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import OperationalError
 
-params = yaml.safe_load(Path("params.secrets.yml").read_text())
+# secrets aggregated from multiple deploys' repo.config files
+params_path = Path("param.secrets.yml").resolve()
+try:
+    params = yaml.safe_load(params_path.read_text())
+except FileNotFoundError:
+    params = {}
 
 
+@pytest.mark.skipif(
+    not params, reason=f"{params_path} not present in cwd={params_path.parent}"
+)
 @pytest.mark.parametrize(
     "user, password, host, port, database",
     [
         pytest.param(
             d["user"], d["password"], d["host"], d["port"], d["database"], id=d["id"]
         )
-        for d in params["databases"]
+        for d in params.get("databases", [])
     ],
 )
-def test_ping_database(user, password, host, port, database):
+def test_database_readiness(user, password, host, port, database):
     database_url = f"postgresql+psycopg2://{user}:{password}@{host}:{port}/{database}"
 
     engine = create_engine(database_url, echo=True, connect_args={"connect_timeout": 2})
