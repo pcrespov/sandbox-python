@@ -30,7 +30,7 @@
             "module": "pytest",
             "args": [
                 "--ff",
-                "--log-cli-level=INFO",
+                "--log-cli-level=DEBUG",
                 "--pdb",
                 "--setup-show",
                 "-sx",
