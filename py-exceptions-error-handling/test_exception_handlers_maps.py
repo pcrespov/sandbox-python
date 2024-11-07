@@ -1,3 +1,4 @@
+import contextlib
 from contextlib import contextmanager
 from typing import Callable
 
@@ -35,19 +36,7 @@ def print_and_reraise_exception(exc):
     return exc
 
 
-def rest_handler(request):
-    ...
-
-
-def middleware(request):
-    with handled_exception_context(
-        ValueError, print_and_ignore_exception, request=request
-    ):
-        response = rest_handler(request)
-        return response
-
-
-def test_it():
+def test_basics():
 
     with handled_exception_context(
         (ZeroDivisionError, ValueError), print_and_ignore_exception
@@ -61,3 +50,30 @@ def test_it():
             (ZeroDivisionError, ValueError), print_and_reraise_exception
         ):
             raise ZeroDivisionError("this should be  handled at the top")
+
+
+def rest_handler(request):
+    return request
+
+
+def middleware(request):
+    with handled_exception_context(
+        ValueError, print_and_ignore_exception, request=request
+    ):
+        response = rest_handler(request)
+        return response
+
+
+def configurable_middleware(request, error_handlers):
+    with contextlib.ExitStack() as stack:
+        # SEE https://docs.python.org/3/library/contextlib.html#supporting-a-variable-number-of-context-managers
+        for exc_t, exc_h in error_handlers:
+            stack.enter_context(
+                handled_exception_context(exc_t, exc_h, request=request)
+            )
+        response = rest_handler(request)
+        return response
+
+
+def test_middleware():
+    ...
