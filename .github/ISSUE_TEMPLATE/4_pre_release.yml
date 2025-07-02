@@ -1,8 +1,13 @@
 name: 🚀 Pre-release to staging (developers-only)
 description: Issue to plan and log pre-release from master to staging deploy (including staging hotfixes)
 title: "🚀 Pre-release master -> staging_<sprint_name><version>"
-labels: ["t:maintenance", "release"]
-assignees: ["pcrespov"]
+labels:
+  - "t:maintenance"
+  - release
+assignees:
+  - matusdrobuliak66
+  - YuryHrytsuk
+type: "Task"
 body:
   - type: dropdown
     id: prerelease_kind
@@ -34,14 +39,22 @@ body:
     attributes:
       label: Commit SHA
       description: |
-        Selets the commit from which the release takes placeholder. Check [commits](https://github.com/ITISFoundation/osparc-simcore/commits/master)
-        IMPORTANT: make sure t (i.e. tests passed and images were built and pushed)
+        Selects the commit from which the release takes place. Check [commits](https://github.com/ITISFoundation/osparc-simcore/commits/master)
+        IMPORTANT: make sure CI (i.e. tests passed and images were built and pushed)
       placeholder: 7d9dcc313f9ced0bd1e6508363148841683b6d7c
+    validations:
+      required: true
+  - type: input
+    id: pre_release_date
+    attributes:
+      label: Planned date
+      description: Projected release date for this upcoming version
+      placeholder: ex. Friday, April 23, 1976
     validations:
       required: true
   - type: checkboxes
     attributes:
-      label: Did the commit CI suceeded?
+      label: Did the commit CI succeed?
       description: Check the CI of the selected commit in the [repo commits](https://github.com/ITISFoundation/osparc-simcore/commits/master)
       options:
         - label: The commit CI succeeded.
@@ -64,7 +77,8 @@ body:
     attributes:
       label: What Changed
       description: |
-        List of commit messages in this release. Add a list of links to the corresponding PRs. This way we can trace the release of every single PR. TIP: use the autogenerate changelog feature during the draft release.
+        List of commit messages in this release. Add a list of links to the corresponding PRs. This way we can trace the release of every single PR. TIP: use the autogenerate changelog feature during the draft release
+        (TIP: use regex replace for better visualization ``\*.+ by (@[\w-]+) in (https:.*)`` -> ``* $2 by $1``).
     validations:
       required: false
   - type: textarea
@@ -76,7 +90,7 @@ body:
         Log any issues since this procedure should be taken also as an exercise in preparation for the release to production as well.
       value: |
         - [ ] Add changes (if any) and release tags in https://github.com/ITISFoundation/osparc-ops-environments/tags
-        - [ ] Add changes (if any) and release tags in osparc ops configurations
+        - [ ] Add changes (if any) and release tags in **osparc-ops-deployment-configuration** (staging.osparc.io & osparc-staging.speag.com)
         - [ ] ...
     validations:
       required: false
@@ -105,10 +119,34 @@ body:
         - Fill up
       value: |
         - [ ] `` make release-staging name=<sprint_name> version=<version> git_sha=<commit_sha>``
+           - `https://github.com/ITISFoundation/osparc-simcore/releases/new?prerelease=1&target=<commit_sha>&tag=staging_<sprint_name><version>&title=Staging%20<sprint_name><version>`
         - [ ] Draft [pre-release](https://github.com/ITISFoundation/osparc-simcore/releases)
-        - [ ] Announce
+        - [ ] Announce (add redis key ```maintenance``` in every concerned deployment)
           ```json
           {"start": "2023-02-01T12:30:00.000Z", "end": "2023-02-01T13:00:00.000Z", "reason": "Release ResistanceIsFutile9 "}
+          ```
+        - [ ] Announce release in Mattermost
+          ```
+          :loud_sound:  Maintenance scheduled for **NAMED_DAY DD. MM from START_TIME - END_TIME**.
+          =========================================================================
+
+          @all Be aware that you will automatically be logged out and your projects stopped and saved during the maintenance time. Affected:
+          *   [https://staging.osparc.io](https://staging.osparc.io/)
+          *   [https://https://staging.s4l-lite.io/](https://https://staging.s4l-lite.io//)
+
+          and on premises:
+          *   [https://osparc-staging.speag.com](https://osparc-staging.speag.com/)
+          *   [https://tip-staging.speag.com](https://tip-staging.speag.com/)
+          *   [https://s4l-staging.speag.com](https://s4l-staging.speag.com/)
+          *   [https://s4l-lite-staging.speag.com](https://s4l-lite-staging.speag.com/)
+
+
+          Reason: Scheduled staging-release of STAGING_NAME_AND_VERSION.
+
+          Thanks for your understanding and sorry for the inconveniences,
+
+          Your friendly oSparc Team
+
           ```
   - type: textarea
     attributes:
@@ -116,6 +154,7 @@ body:
       value: |
         - [ ] Release (release draft)
         - [ ] Check Release CI
+        - [ ] Check hanging sidecars. Helper command to run in director-v2 CLI `simcore-service-director-v2 close-and-save-service <uuid>`
         - [ ] Check deployed
           - [ ] aws deploy
           - [ ] dalco deploy
@@ -124,4 +163,5 @@ body:
         - [ ] Announce
         ``` md
         https://github.com/ITISFoundation/osparc-simcore/releases/tag/staging_<sprint_name><version>
+        ```
         ```
