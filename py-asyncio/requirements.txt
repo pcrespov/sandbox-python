@@ -1,4 +1,0 @@
-pyprof2calltree
-pytest
-pytest-asyncio
-snakeviz

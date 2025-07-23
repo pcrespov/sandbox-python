@@ -1,2 +1,0 @@
-pydantic
-# does not work woth py3 json-logic
