@@ -7,7 +7,7 @@ labels:
 assignees:
   - matusdrobuliak66
   - YuryHrytsuk
-Type: "Task"
+type: "task"
 body:
   - type: dropdown
     id: prerelease_kind
