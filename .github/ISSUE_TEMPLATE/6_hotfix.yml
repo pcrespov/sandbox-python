@@ -7,7 +7,7 @@ labels:
 assignees:
   - matusdrobuliak66
   - YuryHrytsuk
-type: "Task"
+Type: "Task"
 body:
   - type: input
     id: version

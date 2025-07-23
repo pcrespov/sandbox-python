@@ -1,6 +1,6 @@
 name: 🏗️ Maintenance
 description: A change in the code to overcome technical debt
-title: "[Maintenance]: "
+title: "[Task]: "
 labels:
   - "t:maintenance"
 assignees:
@@ -13,7 +13,6 @@ assignees:
   - sanderegg
 projects:
   - "ITISFoundation/projects/9"
-type: "Task"
 body:
   - type: checkboxes
     attributes:
