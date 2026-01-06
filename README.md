@@ -9,6 +9,7 @@ Every branch as `*.stuff` deals with a different topic
   * [``pytest-stuff``](https://github.com/pcrespov/sandbox-python/tree/pytest-stuff) - pytest and plugins
   * [``computation-stuff``](https://github.com/pcrespov/sandbox-python/tree/computation-stuff) - numeric libraries like numpy, pandas, dask, etc
   * [``pipelines-stuff``](https://github.com/pcrespov/sandbox-python/tree/numerics-stuff) -  libs that create jobs/pipelines like celery, cwl, airflow, prefect, ...
+  * [``ai-stuff``](https://github.com/pcrespov/sandbox-python/tree/ai-stuff) - experiments with ai libraries, prompts etc
 
 therefore
 
