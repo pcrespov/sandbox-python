@@ -5,7 +5,7 @@ OR
 
 uv venv
 source .venv/bin/activate
-uv pip install -r requirements-dev.txt
+uv pip sync requirements-dev.txt
 pytest test_aiohttp_with_pytest_asyncio.py
 """
 
