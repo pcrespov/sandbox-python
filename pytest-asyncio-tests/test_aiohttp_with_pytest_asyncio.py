@@ -1,13 +1,14 @@
 """
-    uv run --with aiohttp --with pytest-asyncio pytest test_aiohttp_with_pytest_asyncio.py
+uv run --with aiohttp --with pytest-asyncio pytest test_aiohttp_with_pytest_asyncio.py
 
-    OR
+OR
 
-    uv venv
-    source .venv/bin/activate
-    uv pip install -r requirements-dev.txt
-    pytest test_aiohttp_with_pytest_asyncio.py
+uv venv
+source .venv/bin/activate
+uv pip install -r requirements-dev.txt
+pytest test_aiohttp_with_pytest_asyncio.py
 """
+
 import pytest
 from aiohttp import web
 from aiohttp.test_utils import TestClient
